@@ -28,9 +28,9 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
 
     override suspend fun run(code: String): RunResult = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
-        val exit: Int
-        val out: String
-        val err: String
+        var exit: Int
+        var out: String
+        var err: String
         try {
             val py = Python.getInstance()
             val runner = py.getModule("ide_runner")

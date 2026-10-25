@@ -20,7 +20,7 @@ enum class MirrorSource(
 
     companion object {
         /** Chaquopy 官方预编译原生 wheel 仓库（Chaquopy 13.1+）。 */
-        const val CHAQOUPY_REPO = "https://chaquo.com/pypi-13.1/"
+        const val CHAQUOPY_REPO = "https://chaquo.com/pypi-13.1/"
 
         fun byId(id: String): MirrorSource =
             entries.firstOrNull { it.id == id } ?: OFFICIAL
