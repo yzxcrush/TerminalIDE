@@ -301,7 +301,10 @@ fun MainScreen(
                         onStop = editorVm::stop,
                         onClear = editorVm::clearOutput,
                         hasError = hasError,
-                        onAnalyzeError = { aiVm.analyzeError(language, code, output) },
+                        onAnalyzeError = {
+                            showAi = true
+                            aiVm.analyzeError(language, code, output)
+                        },
                         modifier = Modifier.weight(consoleFraction).fillMaxWidth(),
                     )
                 }
