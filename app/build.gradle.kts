@@ -16,8 +16,8 @@ android {
         applicationId = "com.terminalide"
         minSdk = 24
         targetSdk = 35
-        versionCode = 14
-        versionName = "1.11.0"
+        versionCode = 15
+        versionName = "1.11.1"
 
         // 只打 arm64-v8a（Python 3.12+ 仅支持 64 位）
         ndk {

@@ -57,6 +57,8 @@ APKSIGNER="$BUILD_TOOLS/apksigner"
 ALIGNED="app/build/outputs/apk/release/app-release-aligned.apk"
 OUT="release/TerminalIDE-arm64-v8a-release.apk"
 
+mkdir -p "$(dirname "$OUT")"
+
 "$ZIPALIGN" -f -p 4 "$UNSIGNED" "$ALIGNED"
 "$APKSIGNER" sign \
     --ks "$KEYSTORE" \
