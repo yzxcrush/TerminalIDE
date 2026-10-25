@@ -1,140 +1,128 @@
 # TerminalIDE
 
-Telegram 风格的移动端**三语言 IDE**（Python / C / C++），可打包成可安装的 Android APK（arm64-v8a, release 签名）。
+> 手机上真的能写代码的 IDE —— Python 运行 + 本地 AI 助手 + 移动端代码编辑器
 
-| 组件 | 选型 |
-| --- | --- |
-| UI | Jetpack Compose + Material 3（深色主题、动态取色、Telegram 风格） |
-| Python 运行时 | Chaquopy 嵌入式 CPython（Python 3.12） |
-| C/C++ 编译 | NDK/LLVM clang / clang++（`aarch64-linux-android` 目标，`-static` 静态链接） |
-| 包管理 | 运行期 pip（嵌入式解释器内跑 pip，`--target` 到沙箱 site-packages） |
-| 镜像源 | 官方 / 清华 / 阿里 / 中科大，支持全局默认源 + 临时源 |
-| AI | 本地端侧小模型（离线，默认）+ DeepSeek 官方 API（第三方客户端） |
-| 密钥存储 | `EncryptedSharedPreferences`（AES256） |
+一个 **Telegram 风格**的 Android 移动端 IDE，内置 **CPython 3.13** 与 **llama.cpp 推理引擎**，
+让你在手机上写、跑、调试 Python，还能和**本地离线 / 在线 AI** 边聊边写代码。
+
+**作者：@惜白**
 
 ---
 
-## 目录结构
+## ✨ 功能特性
+
+### 🐍 Python 运行
+- 内置 **CPython 3.13**（Chaquopy 嵌入式），开箱即用，无需外部环境
+- **交互式控制台**：程序运行时可实时输入（`input()` 生效），输出流式显示
+- 「预填输入」批量喂数据、输出自动滚动到最新
+- 运行期 **pip 安装任意 PyPI 包**（官方 / 清华 / 阿里 / 中科大镜像一键切换）
+- 预装常用库：`requests` `beautifulsoup4` `tqdm` `colorama` `rich`
+
+### 🤖 AI 助手
+- **本地离线模型**：内置 llama.cpp 推理引擎，可下载 DeepSeek-R1 蒸馏模型（1.5B / 7B）
+- **DeepSeek 官方 API**：V3（`deepseek-chat`）/ R1（`deepseek-reasoner`）
+- **AI 快捷操作**：解释代码 · 修复错误 · 优化 · 加注释 · 生成测试
+- AI 回复中的代码块可**一键插入编辑器**
+- API Key 使用 `EncryptedSharedPreferences`（AES256）加密存储
+
+### ✏️ 编辑器
+- Python / C / C++ 语法高亮 + 行号 + 圆角卡片
+- **代码符号工具条**：手机键盘缺失的 `( ) [ ] { } : " ' = + - * / #` 等一键输入
+- **括号自动配对** + **回车自动缩进**（Python `:` 后自动缩进 4 空格）
+- **编辑器 / 控制台可拖动分隔条**，自由调整比例
+- 文件树、保存、新建文件、`.py` 文件关联（打开方式）
+
+### 🎨 界面
+- Telegram 风格深色主题、圆角渐变顶栏、胶囊式语言切换
+- 底部导航（运行 / 保存 / 包管理）
+- 鲸鱼娘自适应图标、`@惜白` 水印
+
+---
+
+## 📥 下载安装
+
+前往 **[Releases](https://github.com/yzxcrush/TerminalIDE/releases)** 下载最新 APK：
+
+| 项目 | 说明 |
+|---|---|
+| 架构 | **arm64-v8a**（64 位 ARM） |
+| 最低系统 | **Android 7.0（API 24）** |
+| 目标系统 | Android 15（API 35） |
+| 大小 | 约 38MB |
+
+> 首次使用 AI：在「设置 → AI 后端」填入 DeepSeek API Key，或下载本地模型离线使用。
+
+---
+
+## 🛠 技术栈
+
+| 组件 | 选型 |
+|---|---|
+| UI | Jetpack Compose + Material 3 |
+| Python 运行时 | Chaquopy（CPython 3.13） |
+| 本地推理 | llama.cpp（随 APK 打包在 jniLibs） |
+| AI 服务 | DeepSeek API（OpenAI 兼容协议） |
+| 包管理 | 运行期 pip（`--target` 沙箱 site-packages） |
+| 签名 | 固定 PKCS12 证书（支持就地升级、不丢数据） |
+| CI/CD | GitHub Actions（自动构建 + 签名 + Release） |
+
+---
+
+## 🔧 从源码构建
+
+前置：JDK 17、Android SDK（compileSdk 35）、Python 3.13（Chaquopy 构建期用）
+
+```bash
+# 1) 克隆
+git clone https://github.com/yzxcrush/TerminalIDE.git
+cd TerminalIDE
+
+# 2) 一键构建 + 签名（自动生成/使用固定证书）
+chmod +x scripts/*.sh
+./scripts/build_release.sh
+
+# 3) 产物
+# release/TerminalIDE-arm64-v8a-release.apk
+```
+
+也可以直接推送到 `main`，GitHub Actions 会自动构建并上传产物。
+
+---
+
+## 📁 目录结构
 
 ```
 TerminalIDE/
-├── settings.gradle.kts
-├── build.gradle.kts                 # 插件版本声明（AGP/Kotlin/Compose/Chaquopy）
-├── gradle.properties
-├── gradle/
-│   ├── libs.versions.toml           # 版本目录
-│   └── wrapper/gradle-wrapper.properties
-├── app/
-│   ├── build.gradle.kts             # Chaquopy + NDK(CMake) + Compose 配置
-│   ├── proguard-rules.pro
-│   └── src/main/
-│       ├── AndroidManifest.xml
-│       ├── cpp/                     # NDK JNI 桥接（native-lib.cpp + CMakeLists.txt）
-│       ├── python/                  # 随 APK 打包的 Python 助手
-│       │   ├── ide_runner.py        #   用户代码执行 + IO 捕获
-│       │   └── pip_runner.py        #   运行期 pip 驱动（镜像源/only-binary）
-│       ├── assets/toolchain/        # （fetch_toolchain.sh 放置）设备端 clang 工具链
-│       ├── res/
-│       └── java/com/terminalide/
-│           ├── TerminalIdeApp.kt    # 启动 CPython、初始化服务、解压工具链
-│           ├── MainActivity.kt
-│           ├── core/                # Language/RunResult/Sandbox/SettingsStore/...
-│           ├── backend/             # LanguageBackend + Python/C/C++ + NdkToolchain
-│           ├── packages/            # MirrorSource + PackageManager + PipRunner
-│           ├── ai/                  # AiBackend + Local/DeepSeek + ApiKeyStore + AiService
-│           └── ui/                  # ViewModel + theme + 各 Compose 界面
-└── scripts/
-    ├── build_release.sh             # assembleRelease + zipalign + apksigner 签名
-    ├── fetch_toolchain.sh           # 下载设备端 clang 工具链到 assets
-    └── fetch_local_model.sh         # 宿主机预下载端侧模型
+├── app/src/main/
+│   ├── java/com/terminalide/
+│   │   ├── ai/          # AI 后端：本地 llama.cpp + DeepSeek API
+│   │   ├── backend/     # 语言后端：Python/C/C++ 执行
+│   │   ├── core/        # 沙箱/设置/语言定义
+│   │   ├── packages/    # 镜像源 + pip 包管理
+│   │   └── ui/          # Compose 界面 + ViewModel
+│   ├── python/          # ide_runner.py（交互执行）+ pip_runner.py
+│   ├── jniLibs/         # llama.cpp 推理引擎
+│   └── res/             # 鲸鱼娘图标等资源
+├── scripts/build_release.sh   # 构建 + zipalign + apksigner
+├── signing/terminalide.p12    # 固定签名证书
+└── .github/workflows/         # GitHub Actions 自动打包
 ```
 
 ---
 
-## 构建前置要求
+## ⚠️ 已知限制
 
-- JDK 17
-- Android SDK（`compileSdk 35`、`build-tools`，含 `zipalign`、`apksigner`）
-- NDK（构建期编译 JNI 桥接库；Chaquopy 自身原生库已预编译，无需额外 NDK）
-- 本机 Python 3.12（Chaquopy 构建期安装 pip/setuptools/wheel/requests 时使用，`buildPython` 自动探测）
-- Gradle 8.11+（或用 Android Studio 打开自动生成 wrapper）
-
-> 说明：构建期预装的 `pip/setuptools/wheel/requests` 都是纯 Python 包，**不会现场编译任何 CPython 扩展**。
-
-## 构建与打包
-
-**方式一：Android Studio**
-
-1. 用 Android Studio 打开本目录，等 Gradle Sync 完成（会自动生成 wrapper）。
-2. 菜单 *Build → Build APK(s)*，或 *Generate Signed Bundle/APK* 自选签名。
-
-**方式二：命令行（一键出签名 APK）**
-
-```bash
-./scripts/build_release.sh
-# 产物：release/TerminalIDE-arm64-v8a-release.apk
-# 安装：adb install -r release/TerminalIDE-arm64-v8a-release.apk
-```
-
-脚本流程：`assembleRelease`（产出 `app-release-unsigned.apk`）→ 自动生成 keystore（如无）→ `zipalign` → `apksigner` 签名。
-签名信息可用环境变量覆盖：`KEYSTORE / KEYSTORE_PASS / KEY_ALIAS / KEY_PASS`。
-
-> 正式发布请替换为自己的 keystore，切勿使用默认密码。
+- **C/C++ 编译**：受 Android 10+ SELinux 限制（禁止 App 执行私有目录中的二进制），
+  需将 clang 工具链打入 APK（+135MB）才能启用，当前暂未开启。
+- **文件关联**：`content://` 形式可用；`file://` 形式受分区存储限制。
+- **本地模型**：7B 模型约 4.7GB，下载耗时较长，建议在 WiFi 下进行。
 
 ---
 
-## 镜像源切换（重点）
+## 📄 License
 
-镜像源定义在 `packages/MirrorSource.kt`：
+MIT License
 
-| id | 名称 | index URL |
-| --- | --- | --- |
-| official | 官方源 (pypi.org) | `https://pypi.org/simple` |
-| tsinghua | 清华源 | `https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple` |
-| aliyun | 阿里源 | `https://mirrors.aliyun.com/pypi/simple` |
-| ustc | 中科大源 | `https://mirrors.ustc.edu.cn/pypi/simple` |
+---
 
-两种模式：
-
-1. **全局默认源**：`PackageViewModel.setMirror()` → `SettingsStore.globalMirrorId` 持久化；`install()` 不传 mirror 时使用。
-2. **临时指定源**：`PackageViewModel.install(name, mirror)` 仅本次生效，不改全局设置。
-
-运行期 pip 命令会自动带 `--index-url <镜像>`，原生包另带 `--extra-index-url https://chaquo.com/pypi-13.1/`（Chaquopy 官方预编译 wheel 仓库）。
-
-## 运行期装包原理
-
-- 沙箱目录：`files/sandbox/site-packages`（App 私有目录，卸载即清理，不污染系统）。
-- `pip_runner.py` 在嵌入式 CPython 内调用 `pip._internal.cli.main`，参数强制：
-  - `--target <site-packages>`
-  - `--index-url <镜像>` + `--extra-index-url <Chaquopy wheel 仓库>`
-  - `--only-binary :all:`（**不现场编译任何 C 扩展**）
-- 装好后 `ide_runner.py` 会把沙箱 site-packages 插到 `sys.path` 最前，`import` 即可用。
-- 纯 Python 包从镜像直接装 wheel；原生包走 Chaquopy 预编译 wheel 仓库。无对应预编译 wheel 的原生包会报错（不会尝试源码编译）。
-
-## C/C++ 工具链
-
-`NdkToolchain` 负责「源码写沙箱 → clang/clang++ 编译 → 运行 → 实时捕获 stdout/stderr」。
-
-- 编译命令：`<clang|clang++> --target=aarch64-linux-android24 -std=c11|c++17 -O2 -static -s ...`，静态链接、不依赖系统动态库。
-- 运行：`ProcessBuilder` 启动可执行文件，逐行实时回调到 UI；30s 超时强杀。
-
-> 官方 NDK 的 clang 运行在宿主机上，不能直接在设备里执行。要在**设备端**编译，需要针对 Android/aarch64 的 clang 发行包：
-
-```bash
-TOOLCHAIN_URL="https://example.com/clang-aarch64-android.tar.xz" ./scripts/fetch_toolchain.sh
-```
-
-放置到 `app/src/main/assets/toolchain`（含 `bin/aarch64-linux-android24-clang`、`-clang++`，可选 `sysroot/`）后打进 APK，运行期由 App 解压到 `files/toolchain` 并 `chmod +x`。
-
-## AI 双后端
-
-- **本地端侧小模型（默认，离线）**：`LocalModelBackend` 通过子进程运行 llama.cpp 风格的 `llama-cli`（`files/models` 下，`chmod +x`）。模型与运行时都**不打包进 APK**，运行期可选下载（App 内「设置 → 端侧模型 → 下载」，或 `scripts/fetch_local_model.sh` 预下载）。
-- **DeepSeek 官方 API**：`DeepSeekBackend` 走 OpenAI 兼容协议 `POST <base>/chat/completions`（模型 `deepseek-chat`）。流程：填 Key → 探测验证（`probeWithKey`）→ 通过后写 `EncryptedSharedPreferences` 加密存储。
-- 上下文：每次请求自动织入「当前语言 + 当前编辑器代码」；回复里的代码块可**一键插入编辑器**。
-
-## 已知限制 / 注意
-
-- 运行期原生包依赖 Chaquopy 预编译 wheel 仓库覆盖范围；无对应 wheel 的原生包无法安装（符合「不现场编译 C 扩展」约束）。
-- Python 输出为运行结束后一次性回显；C/C++ 为真·实时逐行回显。
-- `multiprocessing` 在 Android 上受限（用 `multiprocessing.dummy` 代替）。
-- 仅打 `arm64-v8a`（Python 3.12+ 只支持 64 位）；minSdk 24。
+Made with ❤️ by **@惜白**
