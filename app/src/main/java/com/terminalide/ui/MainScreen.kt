@@ -7,12 +7,14 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,6 +54,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -223,13 +227,46 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                     }
                 },
             ) { innerPadding ->
-                Column(Modifier.padding(innerPadding).fillMaxSize()) {
+                // 编辑器 / 控制台 的可调分割比例（拖动中间分隔条调整）
+                var contentHeight by remember { mutableStateOf(1f) }
+                var consoleFraction by remember { mutableStateOf(0.30f) }
+
+                Column(
+                    Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
+                        .onSizeChanged { contentHeight = it.height.toFloat().coerceAtLeast(1f) }
+                ) {
                     CodeEditor(
                         code = code,
                         language = language,
                         onCodeChange = editorVm::updateCode,
-                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        modifier = Modifier
+                            .weight((1f - consoleFraction).coerceAtLeast(0.2f))
+                            .fillMaxWidth(),
                     )
+                    // 可拖动分隔条（向上拖 = 控制台变大；向下拖 = 编辑器变大）
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(16.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .pointerInput(Unit) {
+                                detectVerticalDragGestures { _, dragAmount ->
+                                    consoleFraction = (consoleFraction - dragAmount / contentHeight)
+                                        .coerceIn(0.12f, 0.78f)
+                                }
+                            },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            Modifier
+                                .width(52.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(MaterialTheme.colorScheme.outline),
+                        )
+                    }
                     OutputPanel(
                         output = output,
                         isRunning = isRunning,
@@ -238,7 +275,7 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                         onSendStdin = editorVm::sendStdin,
                         onStop = editorVm::stop,
                         onClear = editorVm::clearOutput,
-                        modifier = Modifier.weight(0.4f).fillMaxWidth(),
+                        modifier = Modifier.weight(consoleFraction).fillMaxWidth(),
                     )
                 }
             }
