@@ -79,6 +79,7 @@ def run_user(code, site_packages=None, stdin_text="", bridge=None, workspace=Non
     `stdin_text` and captures output into memory.
     """
     ensure_sandbox_path(site_packages)
+    _ABORT["flag"] = False
 
     # 工作区加入 sys.path：支持 import 同目录/子目录的模块（多文件项目）
     if workspace and workspace not in sys.path:
@@ -99,14 +100,21 @@ def run_user(code, site_packages=None, stdin_text="", bridge=None, workspace=Non
         sys.stdin = io.StringIO(stdin_text or "")
 
     exit_code = 0
+    old_trace = sys.gettrace()
+    # 每行检查中断标志（纯 Python 死循环只能靠 trace 打断）
+    sys.settrace(_trace)
     try:
         exec(compile(code, "<editor>", "exec"), globals_dict)
+    except _UserAbort:
+        exit_code = 130
+        print("\n[已手动停止]", file=sys.stderr)
     except SystemExit as exc:
         exit_code = _system_exit_code(exc)
     except BaseException:
         exit_code = 1
         traceback.print_exc(file=sys.stderr)
     finally:
+        sys.settrace(old_trace)
         sys.stdout, sys.stderr, sys.stdin = old_out, old_err, old_in
 
     if out is not None:
@@ -120,6 +128,28 @@ def _system_exit_code(exc):
     if isinstance(exc.code, int):
         return exc.code
     return 1
+
+
+# ==================== 中断支持 ====================
+# 通过 sys.settrace 在每行代码执行时检查中断标志，这是中断纯 Python 死循环的唯一办法
+_ABORT = {"flag": False}
+
+
+class _UserAbort(BaseException):
+    """用户主动中断（继承 BaseException，避免被用户的 except Exception 吞掉）。"""
+    pass
+
+
+def abort_exec():
+    """请求中断正在执行的用户代码（UI「停止」按钮调用）。"""
+    _ABORT["flag"] = True
+    return True
+
+
+def _trace(frame, event, arg):
+    if _ABORT["flag"]:
+        raise _UserAbort()
+    return _trace
 
 
 # ==================== REPL ====================

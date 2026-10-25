@@ -33,6 +33,9 @@ interface LanguageBackend {
     /** 关闭输入（EOF），让阻塞中的 readline 返回。 */
     fun closeInput() {}
 
+    /** 请求中断正在执行的程序（Python 用 sys.settrace 打断死循环）。 */
+    fun abort() {}
+
     /** 清理上一次运行的残留输出 / 状态。 */
     fun reset()
 }

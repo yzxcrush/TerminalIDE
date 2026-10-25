@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import com.terminalide.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -50,9 +52,13 @@ fun FileTreeDrawer(
     onSelect: (String) -> Unit,
     onRefresh: () -> Unit,
     onNewFile: (String) -> Unit,
+    onDelete: (String) -> Unit = {},
+    onRename: (String, String) -> Unit = { _, _ -> },
 ) {
     var showNewDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
+    var actionTarget by remember { mutableStateOf<FileItem?>(null) }
+    var renameName by remember { mutableStateOf("") }
 
     Column(
         Modifier
@@ -81,7 +87,12 @@ fun FileTreeDrawer(
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
         LazyColumn(Modifier.fillMaxSize()) {
             items(files, key = { it.path }) { item ->
-                FileRow(item, onSelect)
+                FileRow(item, onSelect, onLongPress = {
+                    if (!item.isDirectory) {
+                        actionTarget = item
+                        renameName = item.name
+                    }
+                })
             }
         }
     }
@@ -117,15 +128,62 @@ fun FileTreeDrawer(
             },
         )
     }
+
+    // 长按文件：重命名 / 删除
+    val target = actionTarget
+    if (target != null) {
+        AlertDialog(
+            onDismissRequest = { actionTarget = null },
+            title = { Text(target.name) },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = renameName,
+                        onValueChange = { renameName = it },
+                        label = { Text(stringResource(R.string.action_rename)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onRename(target.path, renameName)
+                    actionTarget = null
+                }) { Text(stringResource(R.string.action_rename)) }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = {
+                        onDelete(target.path)
+                        actionTarget = null
+                    }) {
+                        Text(
+                            stringResource(R.string.action_delete),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    TextButton(onClick = { actionTarget = null }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            },
+        )
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun FileRow(item: FileItem, onSelect: (String) -> Unit) {
+private fun FileRow(item: FileItem, onSelect: (String) -> Unit, onLongPress: () -> Unit) {
     val icon = if (item.isDirectory) Icons.Filled.Folder else languageIcon(item.language)
     Row(
         Modifier
             .fillMaxWidth()
-            .clickable(enabled = !item.isDirectory) { onSelect(item.path) }
+            .combinedClickable(
+                enabled = !item.isDirectory,
+                onClick = { onSelect(item.path) },
+                onLongClick = onLongPress,
+            )
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -73,4 +73,9 @@
     <string name="settings_language_system">跟隨系統</string>
     <string name="console_ai_analyze">AI 分析錯誤</string>
     <string name="ai_apply_run">套用並執行</string>
+    <string name="action_rename">重新命名</string>
+    <string name="action_delete">刪除</string>
+    <string name="action_share_file">分享為檔案</string>
+    <string name="action_copy_code">複製程式碼</string>
+    <string name="action_share">分享程式碼</string>
 </resources>

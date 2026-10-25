@@ -180,6 +180,7 @@ class EditorViewModel : ViewModel() {
 
     fun stop() {
         // 先让阻塞中的 input() 收到 EOF，否则 Python 线程会一直卡在 readLine()
+        runningBackend?.abort()
         runningBackend?.closeInput()
         runningBackend?.reset()
         runningBackend = null
@@ -232,6 +233,31 @@ class EditorViewModel : ViewModel() {
             val file = File(dir, name.ifBlank { "main.${_language.value.fileExtension}" })
             file.writeText(_language.value.template)
             _code.value = file.readText()
+            refreshFiles()
+        }
+    }
+
+    /** 删除文件（文件树长按菜单）。 */
+    fun deleteFile(path: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val f = File(path)
+            if (f.isFile) f.delete()
+            if (_currentFile.value == path) _currentFile.value = null
+            refreshFiles()
+        }
+    }
+
+    /** 重命名文件（文件树长按菜单）。 */
+    fun renameFile(path: String, newName: String) {
+        val name = newName.trim()
+        if (name.isEmpty()) return
+        viewModelScope.launch(Dispatchers.IO) {
+            val f = File(path)
+            val target = File(f.parentFile, name)
+            if (f.isFile && target.absolutePath != path) {
+                f.renameTo(target)
+                if (_currentFile.value == path) _currentFile.value = target.absolutePath
+            }
             refreshFiles()
         }
     }

@@ -1,5 +1,10 @@
 package com.terminalide.ui
 
+import com.terminalide.core.ShareHelper
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material.icons.filled.Share
 import com.terminalide.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
@@ -117,6 +122,8 @@ fun MainScreen(
                     },
                     onRefresh = editorVm::refreshFiles,
                     onNewFile = editorVm::newFile,
+                    onDelete = editorVm::deleteFile,
+                    onRename = editorVm::renameFile,
                 )
             }
         },
@@ -159,6 +166,36 @@ fun MainScreen(
                                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.72f),
                                         fontSize = 10.sp,
                                     )
+                                }
+                                val context = LocalContext.current
+                                var showShareMenu by remember { mutableStateOf(false) }
+                                Box {
+                                    IconButton(onClick = { showShareMenu = true }) {
+                                        Icon(
+                                            Icons.Filled.Share,
+                                            contentDescription = stringResource(R.string.action_share),
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                        )
+                                    }
+                                    DropdownMenu(
+                                        expanded = showShareMenu,
+                                        onDismissRequest = { showShareMenu = false },
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.action_share_file)) },
+                                            onClick = {
+                                                showShareMenu = false
+                                                ShareHelper.share(context, ShareHelper.fileNameFor(language), code)
+                                            },
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(R.string.action_copy_code)) },
+                                            onClick = {
+                                                showShareMenu = false
+                                                ShareHelper.copy(context, code)
+                                            },
+                                        )
+                                    }
                                 }
                                 IconButton(onClick = { showSettings = true }) {
                                     Icon(

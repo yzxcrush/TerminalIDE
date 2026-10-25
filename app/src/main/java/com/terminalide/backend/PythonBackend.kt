@@ -80,6 +80,12 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
         bridge?.closed = true
     }
 
+    override fun abort() {
+        runCatching {
+            Python.getInstance().getModule("ide_runner").callAttr("abort_exec")
+        }
+    }
+
     /**
      * REPL 单次执行：在持久命名空间里执行代码，返回输出文本（表达式会自动打印结果）。
      */

@@ -73,4 +73,9 @@
     <string name="settings_language_system">システムに従う</string>
     <string name="console_ai_analyze">AI で解析</string>
     <string name="ai_apply_run">適用して実行</string>
+    <string name="action_rename">名前変更</string>
+    <string name="action_delete">削除</string>
+    <string name="action_share_file">ファイルとして共有</string>
+    <string name="action_copy_code">コードをコピー</string>
+    <string name="action_share">コードを共有</string>
 </resources>
