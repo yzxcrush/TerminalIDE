@@ -11,7 +11,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-KEYSTORE="${KEYSTORE:-release/terminalide.keystore}"
+KEYSTORE="${KEYSTORE:-signing/terminalide.p12}"
 KEYSTORE_PASS="${KEYSTORE_PASS:-terminalide}"
 KEY_ALIAS="${KEY_ALIAS:-terminalide}"
 KEY_PASS="${KEY_PASS:-terminalide}"
@@ -31,11 +31,14 @@ echo "[2/4] gradle assembleRelease ..."
 UNSIGNED="app/build/outputs/apk/release/app-release-unsigned.apk"
 [ -f "$UNSIGNED" ] || { echo "错误：未找到 $UNSIGNED"; exit 1; }
 
-# 3) 生成签名 keystore（不存在时）
-mkdir -p release
+# 3) 使用仓库内固定的签名证书（不存在时才生成）
+#    固定证书 = 每次构建签名一致 = 可「就地升级」(adb install -r)，
+#    升级不会清空 App 数据（包括已下载的 4.7GB 模型）。
+mkdir -p "$(dirname "$KEYSTORE")"
 if [ ! -f "$KEYSTORE" ]; then
-    echo "[3/4] 生成签名 keystore ..."
+    echo "[3/4] 未找到固定证书，生成 PKCS12 keystore ..."
     keytool -genkeypair -v \
+        -storetype PKCS12 \
         -keystore "$KEYSTORE" \
         -alias "$KEY_ALIAS" \
         -keyalg RSA -keysize 2048 -validity "$DAYS" \
@@ -57,6 +60,7 @@ OUT="release/TerminalIDE-arm64-v8a-release.apk"
 "$ZIPALIGN" -f -p 4 "$UNSIGNED" "$ALIGNED"
 "$APKSIGNER" sign \
     --ks "$KEYSTORE" \
+    --ks-type PKCS12 \
     --ks-key-alias "$KEY_ALIAS" \
     --ks-pass "pass:$KEYSTORE_PASS" \
     --key-pass "pass:$KEY_PASS" \

@@ -22,6 +22,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +49,13 @@ fun OutputPanel(
     val scrollState = rememberScrollState()
     // 有内容或运行中时默认展开输入框，方便用户看到「在哪输入」
     var showStdin by remember { mutableStateOf(false) }
+
+    // 输出更新后自动滚到底部，保证最新的运行结果（如 2）始终可见
+    LaunchedEffect(output) {
+        if (output.isNotEmpty()) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
 
     Column(
         modifier
