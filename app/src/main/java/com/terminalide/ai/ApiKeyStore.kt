@@ -1,6 +1,7 @@
 package com.terminalide.ai
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 
@@ -9,19 +10,26 @@ import androidx.security.crypto.MasterKey
  *   - MasterKey：AES256_GCM
  *   - PrefKeyEncryptionScheme：AES256_SIV
  *   - PrefValueEncryptionScheme：AES256_GCM
+ *
+ * 部分机型/系统（尤其国产 ROM 的 Keystore 兼容性问题）会在初始化时抛异常，
+ * 这里做了降级处理：加密存储不可用时退回普通 SharedPreferences，避免启动闪退。
  */
 @Suppress("DEPRECATION")
 class ApiKeyStore(context: Context) {
 
-    private val prefs = EncryptedSharedPreferences.create(
-        context,
-        "terminal_ide_secrets",
-        MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build(),
-        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-    )
+    private val prefs: SharedPreferences = try {
+        EncryptedSharedPreferences.create(
+            context,
+            "terminal_ide_secrets",
+            MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build(),
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+        )
+    } catch (t: Throwable) {
+        context.getSharedPreferences("terminal_ide_secrets_fallback", Context.MODE_PRIVATE)
+    }
 
     fun saveKey(key: String) {
         prefs.edit().putString(KEY_API_KEY, key).apply()
