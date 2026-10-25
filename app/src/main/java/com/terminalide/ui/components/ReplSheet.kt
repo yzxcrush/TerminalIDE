@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -55,11 +57,11 @@ fun ReplSheet(replVm: ReplViewModel) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Python REPL",
+                stringResource(R.string.repl_title),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
             )
-            TextButton(onClick = replVm::clear) { Text("清空") }
+            TextButton(onClick = replVm::clear) { Text(stringResource(R.string.action_clear)) }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
@@ -87,7 +89,7 @@ fun ReplSheet(replVm: ReplViewModel) {
                 value = input,
                 onValueChange = { input = it },
                 modifier = Modifier.weight(1f),
-                placeholder = { Text(">>> 输入代码，回车执行") },
+                placeholder = { Text(stringResource(R.string.repl_input_hint)) },
                 singleLine = true,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -110,7 +112,7 @@ fun ReplSheet(replVm: ReplViewModel) {
                         input = ""
                     }
                 }) {
-                    Icon(Icons.Filled.Send, contentDescription = "执行")
+                    Icon(Icons.Filled.Send, contentDescription = stringResource(R.string.action_send))
                 }
             }
         }

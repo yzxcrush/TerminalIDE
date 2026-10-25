@@ -31,6 +31,20 @@ class MainActivity : ComponentActivity() {
     /** 从「打开方式」收到、等待载入编辑器的文件内容（文本, 文件名）。 */
     private val pendingOpen = mutableStateOf<Pair<String, String?>?>(null)
 
+    /** 应用用户选择的 App 语言（system 时跟随系统）。 */
+    override fun attachBaseContext(newBase: android.content.Context) {
+        val lang = com.terminalide.core.SettingsStore(newBase).appLanguage
+        if (lang != "system") {
+            val locale = java.util.Locale.forLanguageTag(lang)
+            java.util.Locale.setDefault(locale)
+            val config = android.content.res.Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            super.attachBaseContext(newBase.createConfigurationContext(config))
+        } else {
+            super.attachBaseContext(newBase)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleOpenIntent(intent)

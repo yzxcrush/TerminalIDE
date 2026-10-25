@@ -1,5 +1,6 @@
 package com.terminalide.ui
 
+import com.terminalide.R
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.terminalide.TerminalIdeApp
@@ -18,7 +19,7 @@ class ReplViewModel : ViewModel() {
 
     private val app get() = TerminalIdeApp.instance
 
-    private val _output = MutableStateFlow("Python REPL · 输入代码回车执行（变量会保留）\n")
+    private val _output = MutableStateFlow(app.getString(R.string.repl_welcome) + "\n")
     val output: StateFlow<String> = _output.asStateFlow()
 
     private val _busy = MutableStateFlow(false)
@@ -39,7 +40,7 @@ class ReplViewModel : ViewModel() {
     }
 
     fun clear() {
-        _output.value = "Python REPL · 输入代码回车执行（变量会保留）\n"
+        _output.value = app.getString(R.string.repl_welcome) + "\n"
         viewModelScope.launch { backend?.replReset() }
     }
 }

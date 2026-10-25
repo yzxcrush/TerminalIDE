@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -52,7 +54,7 @@ fun ConsoleInputBar(
             value = input,
             onValueChange = { input = it },
             modifier = Modifier.weight(1f),
-            placeholder = { Text("输入内容，回车发送给程序") },
+            placeholder = { Text(stringResource(R.string.console_input_hint)) },
             singleLine = true,
             textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
@@ -61,7 +63,7 @@ fun ConsoleInputBar(
         IconButton(onClick = { submit() }) {
             Icon(
                 Icons.Filled.Send,
-                contentDescription = "发送",
+                contentDescription = stringResource(R.string.action_send),
                 tint = MaterialTheme.colorScheme.primary,
             )
         }

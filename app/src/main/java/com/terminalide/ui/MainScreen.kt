@@ -1,5 +1,7 @@
 package com.terminalide.ui
 
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -167,7 +169,7 @@ fun MainScreen(
                                 IconButton(onClick = { showAi = true }) {
                                     Icon(
                                         Icons.Filled.SmartToy,
-                                        contentDescription = "AI 助手",
+                                        contentDescription = stringResource(R.string.ai_title),
                                         tint = MaterialTheme.colorScheme.onPrimary,
                                     )
                                 }
@@ -223,28 +225,28 @@ fun MainScreen(
                             icon = {
                                 Icon(
                                     if (isRunning) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-                                    contentDescription = if (isRunning) "停止" else "运行",
+                                    contentDescription = stringResource(if (isRunning) R.string.action_stop else R.string.action_run),
                                 )
                             },
-                            label = { Text(if (isRunning) "停止" else "运行") },
+                            label = { Text(stringResource(if (isRunning) R.string.action_stop else R.string.action_run)) },
                         )
                         NavigationBarItem(
                             selected = false,
                             onClick = editorVm::save,
-                            icon = { Icon(Icons.Filled.Save, contentDescription = "保存") },
-                            label = { Text("保存") },
+                            icon = { Icon(Icons.Filled.Save, contentDescription = stringResource(R.string.action_save)) },
+                            label = { Text(stringResource(R.string.action_save)) },
                         )
                         NavigationBarItem(
                             selected = false,
                             onClick = { showPackages = true },
-                            icon = { Icon(Icons.Filled.Inventory2, contentDescription = "包管理") },
-                            label = { Text("包管理") },
+                            icon = { Icon(Icons.Filled.Inventory2, contentDescription = stringResource(R.string.action_packages)) },
+                            label = { Text(stringResource(R.string.action_packages)) },
                         )
                         NavigationBarItem(
                             selected = false,
                             onClick = { showRepl = true },
-                            icon = { Icon(Icons.Filled.Code, contentDescription = "REPL") },
-                            label = { Text("REPL") },
+                            icon = { Icon(Icons.Filled.Code, contentDescription = stringResource(R.string.action_repl)) },
+                            label = { Text(stringResource(R.string.action_repl)) },
                         )
                         }
                     }

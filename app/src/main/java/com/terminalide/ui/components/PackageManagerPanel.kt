@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import androidx.compose.ui.res.stringResource
+import com.terminalide.R
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -61,7 +63,7 @@ fun PackageManagerPanel(packageVm: PackageViewModel) {
     ) {
         item {
             Text(
-                "包管理",
+                stringResource(R.string.action_packages),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )

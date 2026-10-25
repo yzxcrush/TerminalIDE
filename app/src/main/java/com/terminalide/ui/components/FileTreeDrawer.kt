@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -64,16 +66,16 @@ fun FileTreeDrawer(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "文件",
+                stringResource(R.string.files_title),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(onClick = onRefresh) {
-                Icon(Icons.Filled.Refresh, contentDescription = "刷新")
+                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh))
             }
             IconButton(onClick = { showNewDialog = true }) {
-                Icon(Icons.Filled.Add, contentDescription = "新建")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.files_new))
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -87,12 +89,12 @@ fun FileTreeDrawer(
     if (showNewDialog) {
         AlertDialog(
             onDismissRequest = { showNewDialog = false },
-            title = { Text("新建文件") },
+            title = { Text(stringResource(R.string.files_new_title)) },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("文件名（含后缀，如 test.py）") },
+                    label = { Text(stringResource(R.string.files_new_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -105,12 +107,12 @@ fun FileTreeDrawer(
                         showNewDialog = false
                     }
                 ) {
-                    Text("创建")
+                    Text(stringResource(R.string.action_create))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showNewDialog = false }) {
-                    Text("取消")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
         )

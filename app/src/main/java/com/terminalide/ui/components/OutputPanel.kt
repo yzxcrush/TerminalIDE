@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,18 +72,18 @@ fun OutputPanel(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "控制台",
+                stringResource(R.string.console_title),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             TextButton(onClick = { showStdin = !showStdin }) {
-                Text(if (showStdin) "收起预填" else "预填输入")
+                Text(stringResource(if (showStdin) R.string.console_prefill_collapse else R.string.console_prefill))
             }
             IconButton(onClick = onClear) {
                 Icon(
                     Icons.Filled.Delete,
-                    contentDescription = "清空",
+                    contentDescription = stringResource(R.string.action_clear),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -89,7 +91,7 @@ fun OutputPanel(
                 IconButton(onClick = onStop) {
                     Icon(
                         Icons.Filled.Stop,
-                        contentDescription = "停止",
+                        contentDescription = stringResource(R.string.action_stop),
                         tint = MaterialTheme.colorScheme.error,
                     )
                 }
@@ -105,8 +107,8 @@ fun OutputPanel(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
                     .heightIn(min = 64.dp),
-                label = { Text("预填输入（每行一条，运行时也会依次读入）") },
-                placeholder = { Text("例如：1") },
+                label = { Text(stringResource(R.string.console_prefill_label)) },
+                placeholder = { Text(stringResource(R.string.console_prefill_hint)) },
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                 minLines = 2,
                 maxLines = 4,
@@ -117,8 +119,8 @@ fun OutputPanel(
         Box(Modifier.weight(1f).fillMaxWidth()) {
             if (output.isEmpty()) {
                 Text(
-                    if (isRunning) "程序运行中…需要输入时用底部输入条"
-                    else "点击运行以查看输出（交互式程序运行时，底部会出现输入条）",
+                    if (isRunning) stringResource(R.string.console_running_hint)
+                    else stringResource(R.string.console_empty_hint),
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),

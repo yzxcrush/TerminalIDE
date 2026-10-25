@@ -1,5 +1,8 @@
 package com.terminalide.ui.components
 
+import androidx.compose.ui.platform.LocalContext
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -99,13 +102,13 @@ fun AiSidebar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "AI 助手",
+                stringResource(R.string.ai_title),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(onClick = aiVm::clearMessages) {
-                Icon(Icons.Filled.Delete, contentDescription = "清空对话")
+                Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.ai_clear_chat))
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
@@ -121,13 +124,23 @@ fun AiSidebar(
                     FilterChip(
                         selected = kind == backend,
                         onClick = { aiVm.setKind(backend) },
-                        label = { Text(backend.displayName) },
+                        label = {
+                            Text(
+                                stringResource(
+                                    when (backend) {
+                                        AiBackendKind.LOCAL -> R.string.ai_backend_local
+                                        AiBackendKind.DEEPSEEK -> R.string.ai_backend_chat
+                                        AiBackendKind.DEEPSEEK_R1 -> R.string.ai_backend_r1
+                                    }
+                                )
+                            )
+                        },
                     )
                 }
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                if (ready) "● 就绪" else "○ 未就绪",
+                if (ready) stringResource(R.string.ai_ready) else stringResource(R.string.ai_not_ready),
                 color = if (ready) SuccessGreen else MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -138,7 +151,7 @@ fun AiSidebar(
                     OutlinedTextField(
                         value = apiKeyInput,
                         onValueChange = aiVm::updateApiKeyInput,
-                        label = { Text("DeepSeek API Key") },
+                        label = { Text(stringResource(R.string.ai_api_key_label)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
@@ -148,7 +161,7 @@ fun AiSidebar(
                         onClick = aiVm::saveApiKeyAndProbe,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("探测验证并保存")
+                        Text(stringResource(R.string.ai_api_key_verify))
                     }
                     if (hasApiKey) {
                         Row(
@@ -156,12 +169,12 @@ fun AiSidebar(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
-                                "已保存 Key",
+                                stringResource(R.string.ai_api_key_saved),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                             Spacer(Modifier.weight(1f))
-                            TextButton(onClick = aiVm::clearApiKey) { Text("清除") }
+                            TextButton(onClick = aiVm::clearApiKey) { Text(stringResource(R.string.ai_clear)) }
                         }
                     }
                     probeResult?.let { pr ->
@@ -176,17 +189,17 @@ fun AiSidebar(
                 AiBackendKind.LOCAL -> {
                     Text(
                         if (modelPath.isNotEmpty())
-                            "本地模型：${modelPath.substringAfterLast('/')}"
-                        else "内置 llama.cpp 引擎（离线），尚未下载模型",
+                            stringResource(R.string.ai_model_prefix) + modelPath.substringAfterLast('/')
+                        else stringResource(R.string.ai_no_model),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                     )
                     TextButton(onClick = { showModelMgmt = !showModelMgmt }) {
-                        Text(if (showModelMgmt) "收起模型管理" else "模型管理（下载 / 更换）")
+                        Text(stringResource(if (showModelMgmt) R.string.ai_model_manage_collapse else R.string.ai_model_manage))
                     }
                     if (showModelMgmt) {
                         Text(
-                            "推荐模型（hf-mirror 镜像，点选自动填入 URL）：",
+                            stringResource(R.string.ai_recommend_models),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -208,7 +221,7 @@ fun AiSidebar(
                         OutlinedTextField(
                             value = modelUrl,
                             onValueChange = aiVm::updateModelUrl,
-                            label = { Text("模型下载 URL") },
+                            label = { Text(stringResource(R.string.settings_download_url)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -217,7 +230,7 @@ fun AiSidebar(
                             onClick = aiVm::downloadModel,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("下载模型")
+                            Text(stringResource(R.string.ai_download_model))
                         }
                         if (downloadProgress.isNotEmpty()) {
                             Spacer(Modifier.height(8.dp))
@@ -263,13 +276,15 @@ fun AiSidebar(
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            val ctx = LocalContext.current
             listOf(
-                "解释代码" to "请解释当前编辑器里这段代码的作用，逐段说明，尽量简洁。",
-                "修复错误" to "请检查当前编辑器里这段代码的错误，并给出修复后的完整代码。",
-                "优化" to "请优化当前编辑器里这段代码，提升可读性和性能，给出完整代码。",
-                "加注释" to "请给当前编辑器里这段代码加上清晰的中文注释，输出完整代码。",
-                "生成测试" to "请为当前编辑器里这段代码生成测试用例。",
-            ).forEach { (label, prompt) ->
+                R.string.ai_quick_explain to "请解释当前编辑器里这段代码的作用，逐段说明，尽量简洁。",
+                R.string.ai_quick_fix to "请检查当前编辑器里这段代码的错误，并给出修复后的完整代码。",
+                R.string.ai_quick_optimize to "请优化当前编辑器里这段代码，提升可读性和性能，给出完整代码。",
+                R.string.ai_quick_comment to "请给当前编辑器里这段代码加上清晰的中文注释，输出完整代码。",
+                R.string.ai_quick_test to "请为当前编辑器里这段代码生成测试用例。",
+            ).forEach { (labelRes, prompt) ->
+                val label = ctx.getString(labelRes)
                 OutlinedButton(
                     onClick = { aiVm.sendQuick(label, prompt, currentLanguage, currentCode) },
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
@@ -294,7 +309,7 @@ fun AiSidebar(
                 value = input,
                 onValueChange = aiVm::updateInput,
                 modifier = Modifier.weight(1f),
-                placeholder = { Text("输入问题...") },
+                placeholder = { Text(stringResource(R.string.ai_input_hint)) },
                 maxLines = 4,
             )
             Spacer(Modifier.width(8.dp))
@@ -351,7 +366,7 @@ private fun MessageBubble(msg: AiMessage, onInsertCode: (String) -> Unit) {
                 extractCodeBlock(msg.content)?.let { block ->
                     Spacer(Modifier.height(8.dp))
                     TextButton(onClick = { onInsertCode(block) }) {
-                        Text("插入代码")
+                        Text(stringResource(R.string.ai_insert_code))
                     }
                 }
             }

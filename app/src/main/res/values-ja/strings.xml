@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name">Terminal IDE</string>
+
+    <!-- 共通操作 -->
+    <string name="action_run">実行</string>
+    <string name="action_stop">停止</string>
+    <string name="action_save">保存</string>
+    <string name="action_packages">パッケージ</string>
+    <string name="action_repl">REPL</string>
+    <string name="action_clear">クリア</string>
+    <string name="action_send">送信</string>
+    <string name="action_create">作成</string>
+    <string name="action_cancel">キャンセル</string>
+
+    <!-- コンソール -->
+    <string name="console_title">コンソール</string>
+    <string name="console_prefill">事前入力</string>
+    <string name="console_prefill_collapse">事前入力を閉じる</string>
+    <string name="console_prefill_label">事前入力（1 行ずつ、実行時にも順に読み込みます）</string>
+    <string name="console_prefill_hint">例：1</string>
+    <string name="console_running_hint">実行中…入力が必要なときは下部の入力バーを使用</string>
+    <string name="console_empty_hint">「実行」で出力を確認（対話型プログラム実行中は下部に入力バーが出ます）</string>
+    <string name="console_input_hint">入力して Enter でプログラムに送信</string>
+
+    <!-- REPL -->
+    <string name="repl_title">Python REPL</string>
+    <string name="repl_welcome">Python REPL · コードを入力して Enter で実行（変数は保持されます）</string>
+    <string name="repl_input_hint">&gt;&gt;&gt; コードを入力、Enter で実行</string>
+
+    <!-- AI -->
+    <string name="ai_title">AI アシスタント</string>
+    <string name="ai_clear_chat">会話をクリア</string>
+    <string name="ai_ready">● 準備完了</string>
+    <string name="ai_not_ready">○ 未準備</string>
+    <string name="ai_input_hint">質問を入力...</string>
+    <string name="ai_insert_code">コードを挿入</string>
+    <string name="ai_quick_explain">コードを説明</string>
+    <string name="ai_quick_fix">エラーを修正</string>
+    <string name="ai_quick_optimize">最適化</string>
+    <string name="ai_quick_comment">コメント追加</string>
+    <string name="ai_quick_test">テスト生成</string>
+    <string name="ai_model_manage">モデル管理（ダウンロード / 変更）</string>
+    <string name="ai_model_manage_collapse">モデル管理を閉じる</string>
+    <string name="ai_backend_local">ローカルモデル（オフライン）</string>
+    <string name="ai_backend_chat">DeepSeek-V3（API）</string>
+    <string name="ai_backend_r1">DeepSeek-R1（推論 API）</string>
+    <string name="ai_api_key_label">DeepSeek API Key</string>
+    <string name="ai_api_key_verify">検証して保存</string>
+    <string name="ai_api_key_saved">保存済み Key</string>
+    <string name="ai_clear">クリア</string>
+    <string name="ai_recommend_models">推奨モデル（hf-mirror ミラー、タップで URL 入力）：</string>
+    <string name="ai_download_model">モデルをダウンロード</string>
+    <string name="ai_downloading">ダウンロード中</string>
+    <string name="ai_no_model">llama.cpp エンジン内蔵（オフライン）、モデル未ダウンロード</string>
+    <string name="ai_model_prefix">ローカルモデル：</string>
+
+    <!-- ファイル -->
+    <string name="files_title">ファイル</string>
+    <string name="files_refresh">更新</string>
+    <string name="files_new">新規</string>
+    <string name="files_new_title">新規ファイル</string>
+    <string name="files_new_hint">ファイル名（拡張子付き、例：test.py）</string>
+
+    <!-- 設定 -->
+    <string name="settings_title">設定</string>
+    <string name="settings_ai_backend">AI バックエンド</string>
+    <string name="settings_api_key">DeepSeek API Key</string>
+    <string name="settings_api_key_hint">API Key</string>
+    <string name="settings_verify_save">検証して保存</string>
+    <string name="settings_local_model">オンデバイスモデル</string>
+    <string name="settings_download_url">ダウンロード URL</string>
+    <string name="settings_language">言語 / Language</string>
+    <string name="settings_language_system">システムに従う</string>
+</resources>

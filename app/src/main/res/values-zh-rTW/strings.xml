@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name">Terminal IDE</string>
+
+    <!-- 通用操作 -->
+    <string name="action_run">執行</string>
+    <string name="action_stop">停止</string>
+    <string name="action_save">儲存</string>
+    <string name="action_packages">套件管理</string>
+    <string name="action_repl">REPL</string>
+    <string name="action_clear">清除</string>
+    <string name="action_send">傳送</string>
+    <string name="action_create">建立</string>
+    <string name="action_cancel">取消</string>
+
+    <!-- 主控台 -->
+    <string name="console_title">主控台</string>
+    <string name="console_prefill">預填輸入</string>
+    <string name="console_prefill_collapse">收起預填</string>
+    <string name="console_prefill_label">預填輸入（每行一筆，執行時也會依序讀入）</string>
+    <string name="console_prefill_hint">例如：1</string>
+    <string name="console_running_hint">程式執行中…需要輸入時用底部輸入列</string>
+    <string name="console_empty_hint">點擊執行以查看輸出（互動式程式執行時，底部會出現輸入列）</string>
+    <string name="console_input_hint">輸入內容，按 Enter 傳送給程式</string>
+
+    <!-- REPL -->
+    <string name="repl_title">Python REPL</string>
+    <string name="repl_welcome">Python REPL · 輸入程式碼按 Enter 執行（變數會保留）</string>
+    <string name="repl_input_hint">&gt;&gt;&gt; 輸入程式碼，按 Enter 執行</string>
+
+    <!-- AI -->
+    <string name="ai_title">AI 助理</string>
+    <string name="ai_clear_chat">清除對話</string>
+    <string name="ai_ready">● 就緒</string>
+    <string name="ai_not_ready">○ 未就緒</string>
+    <string name="ai_input_hint">輸入問題...</string>
+    <string name="ai_insert_code">插入程式碼</string>
+    <string name="ai_quick_explain">解釋程式碼</string>
+    <string name="ai_quick_fix">修正錯誤</string>
+    <string name="ai_quick_optimize">最佳化</string>
+    <string name="ai_quick_comment">加上註解</string>
+    <string name="ai_quick_test">產生測試</string>
+    <string name="ai_model_manage">模型管理（下載 / 更換）</string>
+    <string name="ai_model_manage_collapse">收起模型管理</string>
+    <string name="ai_backend_local">本機端模型（離線）</string>
+    <string name="ai_backend_chat">DeepSeek-V3（API）</string>
+    <string name="ai_backend_r1">DeepSeek-R1（推理 API）</string>
+    <string name="ai_api_key_label">DeepSeek API Key</string>
+    <string name="ai_api_key_verify">偵測驗證並儲存</string>
+    <string name="ai_api_key_saved">已儲存 Key</string>
+    <string name="ai_clear">清除</string>
+    <string name="ai_recommend_models">建議模型（hf-mirror 鏡像，點選自動填入 URL）：</string>
+    <string name="ai_download_model">下載模型</string>
+    <string name="ai_downloading">下載中</string>
+    <string name="ai_no_model">內建 llama.cpp 引擎（離線），尚未下載模型</string>
+    <string name="ai_model_prefix">本機模型：</string>
+
+    <!-- 檔案 -->
+    <string name="files_title">檔案</string>
+    <string name="files_refresh">重新整理</string>
+    <string name="files_new">新增</string>
+    <string name="files_new_title">新增檔案</string>
+    <string name="files_new_hint">檔案名稱（含副檔名，如 test.py）</string>
+
+    <!-- 設定 -->
+    <string name="settings_title">設定</string>
+    <string name="settings_ai_backend">AI 後端</string>
+    <string name="settings_api_key">DeepSeek API Key</string>
+    <string name="settings_api_key_hint">API Key</string>
+    <string name="settings_verify_save">驗證並儲存</string>
+    <string name="settings_local_model">端側模型</string>
+    <string name="settings_download_url">下載 URL</string>
+    <string name="settings_language">語言 / Language</string>
+    <string name="settings_language_system">跟隨系統</string>
+</resources>

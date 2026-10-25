@@ -32,11 +32,19 @@ class SettingsStore(context: Context) {
         get() = sp.getString(KEY_API_BASE, DEFAULT_API_BASE) ?: DEFAULT_API_BASE
         set(v) = sp.edit().putString(KEY_API_BASE, v).apply()
 
+    /**
+     * App 语言：system（跟随系统）/ zh（简体）/ en（English）/ zh-TW（繁體）/ ja（日本語）。
+     */
+    var appLanguage: String
+        get() = sp.getString(KEY_LANGUAGE, "system") ?: "system"
+        set(v) = sp.edit().putString(KEY_LANGUAGE, v).apply()
+
     companion object {
         const val KEY_MIRROR = "global_mirror"
         const val KEY_AI_BACKEND = "ai_backend_kind"
         const val KEY_MODEL_PATH = "local_model_path"
         const val KEY_API_BASE = "api_base_url"
+        const val KEY_LANGUAGE = "app_language"
         const val DEFAULT_API_BASE = "https://api.deepseek.com"
     }
 }

@@ -1,0 +1,74 @@
+<resources>
+    <string name="app_name">Terminal IDE</string>
+
+    <!-- Common actions -->
+    <string name="action_run">Run</string>
+    <string name="action_stop">Stop</string>
+    <string name="action_save">Save</string>
+    <string name="action_packages">Packages</string>
+    <string name="action_repl">REPL</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_send">Send</string>
+    <string name="action_create">Create</string>
+    <string name="action_cancel">Cancel</string>
+
+    <!-- Console -->
+    <string name="console_title">Console</string>
+    <string name="console_prefill">Prefill</string>
+    <string name="console_prefill_collapse">Hide prefill</string>
+    <string name="console_prefill_label">Prefill input (one line each, also read at runtime)</string>
+    <string name="console_prefill_hint">e.g. 1</string>
+    <string name="console_running_hint">Running… use the bottom input bar when asked for input</string>
+    <string name="console_empty_hint">Tap Run to see output (an input bar appears while an interactive program runs)</string>
+    <string name="console_input_hint">Type here, press Enter to send to the program</string>
+
+    <!-- REPL -->
+    <string name="repl_title">Python REPL</string>
+    <string name="repl_welcome">Python REPL · type code and press Enter (variables persist)</string>
+    <string name="repl_input_hint">&gt;&gt;&gt; type code, press Enter</string>
+
+    <!-- AI -->
+    <string name="ai_title">AI Assistant</string>
+    <string name="ai_clear_chat">Clear chat</string>
+    <string name="ai_ready">● Ready</string>
+    <string name="ai_not_ready">○ Not ready</string>
+    <string name="ai_input_hint">Type a question...</string>
+    <string name="ai_insert_code">Insert code</string>
+    <string name="ai_quick_explain">Explain</string>
+    <string name="ai_quick_fix">Fix errors</string>
+    <string name="ai_quick_optimize">Optimize</string>
+    <string name="ai_quick_comment">Comment</string>
+    <string name="ai_quick_test">Gen tests</string>
+    <string name="ai_model_manage">Models (download / change)</string>
+    <string name="ai_model_manage_collapse">Hide models</string>
+    <string name="ai_backend_local">Local model (offline)</string>
+    <string name="ai_backend_chat">DeepSeek-V3 (API)</string>
+    <string name="ai_backend_r1">DeepSeek-R1 (reasoning API)</string>
+    <string name="ai_api_key_label">DeepSeek API Key</string>
+    <string name="ai_api_key_verify">Verify &amp; save</string>
+    <string name="ai_api_key_saved">Key saved</string>
+    <string name="ai_clear">Clear</string>
+    <string name="ai_recommend_models">Recommended models (hf-mirror, tap to fill URL):</string>
+    <string name="ai_download_model">Download model</string>
+    <string name="ai_downloading">Downloading</string>
+    <string name="ai_no_model">Built-in llama.cpp engine (offline), no model downloaded yet</string>
+    <string name="ai_model_prefix">Model: </string>
+
+    <!-- Files -->
+    <string name="files_title">Files</string>
+    <string name="files_refresh">Refresh</string>
+    <string name="files_new">New</string>
+    <string name="files_new_title">New file</string>
+    <string name="files_new_hint">File name (with extension, e.g. test.py)</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_ai_backend">AI backend</string>
+    <string name="settings_api_key">DeepSeek API Key</string>
+    <string name="settings_api_key_hint">API Key</string>
+    <string name="settings_verify_save">Verify &amp; save</string>
+    <string name="settings_local_model">On-device model</string>
+    <string name="settings_download_url">Download URL</string>
+    <string name="settings_language">Language / 语言</string>
+    <string name="settings_language_system">Follow system</string>
+</resources>

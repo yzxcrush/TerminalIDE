@@ -1,5 +1,11 @@
 package com.terminalide.ui.components
 
+import com.terminalide.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -53,12 +59,51 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
     ) {
         item {
             Text(
-                "设置",
+                stringResource(R.string.settings_title),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
         item { Spacer(Modifier.height(12.dp)) }
+
+        // ---- 语言 / Language ----
+        item {
+            Text(
+                stringResource(R.string.settings_language),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        item {
+            val context = LocalContext.current
+            val settingsStore = com.terminalide.TerminalIdeApp.instance.settings
+            var currentLang by remember { mutableStateOf(settingsStore.appLanguage) }
+            Column {
+                listOf(
+                    "system" to stringResource(R.string.settings_language_system),
+                    "zh" to "简体中文",
+                    "en" to "English",
+                    "zh-TW" to "繁體中文",
+                    "ja" to "日本語",
+                ).forEach { (code, label) ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                settingsStore.appLanguage = code
+                                currentLang = code
+                                (context as? android.app.Activity)?.recreate()
+                            }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(selected = currentLang == code, onClick = null)
+                        Text(label)
+                    }
+                }
+            }
+        }
+        item { Spacer(Modifier.height(16.dp)) }
 
         item {
             Text(
@@ -96,7 +141,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
 
         item {
             Text(
-                "AI 后端",
+                stringResource(R.string.settings_ai_backend),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -121,7 +166,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
 
         item {
             Text(
-                "DeepSeek API Key",
+                stringResource(R.string.settings_api_key),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -130,7 +175,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
             OutlinedTextField(
                 value = apiKeyInput,
                 onValueChange = aiVm::updateApiKeyInput,
-                label = { Text("API Key") },
+                label = { Text(stringResource(R.string.settings_api_key_hint)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
@@ -143,7 +188,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
                     onClick = aiVm::saveApiKeyAndProbe,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("验证并保存")
+                    Text(stringResource(R.string.settings_verify_save))
                 }
             }
         }
@@ -169,7 +214,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
 
         item {
             Text(
-                "端侧模型",
+                stringResource(R.string.settings_local_model),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -178,7 +223,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
             OutlinedTextField(
                 value = modelUrl,
                 onValueChange = aiVm::updateModelUrl,
-                label = { Text("下载 URL") },
+                label = { Text(stringResource(R.string.settings_download_url)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
