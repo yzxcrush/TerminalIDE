@@ -13,3 +13,7 @@
 
 # security-crypto 所需的注解
 -dontwarn androidx.security.**
+
+# Tink（security-crypto 的传递依赖）引用的 errorprone 编译期注解在运行时不存在
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn com.google.crypto.tink.**
