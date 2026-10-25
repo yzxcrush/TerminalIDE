@@ -71,6 +71,7 @@ fun AiSidebar(
     currentLanguage: Language,
     currentCode: String,
     onInsertCode: (String) -> Unit,
+    onApplyAndRun: (String) -> Unit,
 ) {
     val kind by aiVm.kind.collectAsStateWithLifecycle()
     val messages by aiVm.messages.collectAsStateWithLifecycle()
@@ -262,7 +263,7 @@ fun AiSidebar(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(messages) { msg ->
-                MessageBubble(msg, onInsertCode)
+                MessageBubble(msg, onInsertCode, onApplyAndRun)
             }
         }
 
@@ -338,7 +339,11 @@ fun AiSidebar(
 }
 
 @Composable
-private fun MessageBubble(msg: AiMessage, onInsertCode: (String) -> Unit) {
+private fun MessageBubble(
+    msg: AiMessage,
+    onInsertCode: (String) -> Unit,
+    onApplyAndRun: (String) -> Unit,
+) {
     val isUser = msg.role == AiMessage.Role.USER
     val bubbleColor =
         if (isUser) MaterialTheme.colorScheme.primary
@@ -365,8 +370,13 @@ private fun MessageBubble(msg: AiMessage, onInsertCode: (String) -> Unit) {
             if (!isUser) {
                 extractCodeBlock(msg.content)?.let { block ->
                     Spacer(Modifier.height(8.dp))
-                    TextButton(onClick = { onInsertCode(block) }) {
-                        Text(stringResource(R.string.ai_insert_code))
+                    androidx.compose.foundation.layout.Row {
+                        TextButton(onClick = { onInsertCode(block) }) {
+                            Text(stringResource(R.string.ai_insert_code))
+                        }
+                        TextButton(onClick = { onApplyAndRun(block) }) {
+                            Text(stringResource(R.string.ai_apply_run))
+                        }
                     }
                 }
             }

@@ -48,6 +48,8 @@ fun OutputPanel(
     onStdinChange: (String) -> Unit,
     onStop: () -> Unit,
     onClear: () -> Unit,
+    hasError: Boolean = false,
+    onAnalyzeError: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val scrollState = rememberScrollState()
@@ -77,6 +79,14 @@ fun OutputPanel(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            if (hasError) {
+                TextButton(onClick = onAnalyzeError) {
+                    Text(
+                        stringResource(R.string.console_ai_analyze),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
             TextButton(onClick = { showStdin = !showStdin }) {
                 Text(stringResource(if (showStdin) R.string.console_prefill_collapse else R.string.console_prefill))
             }

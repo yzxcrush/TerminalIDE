@@ -72,13 +72,17 @@ class _BridgeWriter:
         return False
 
 
-def run_user(code, site_packages=None, stdin_text="", bridge=None):
+def run_user(code, site_packages=None, stdin_text="", bridge=None, workspace=None):
     """Execute user code and return (exit_code, stdout, stderr).
 
     In interactive mode `bridge` drives stdin/stdout; in batch mode it uses
     `stdin_text` and captures output into memory.
     """
     ensure_sandbox_path(site_packages)
+
+    # 工作区加入 sys.path：支持 import 同目录/子目录的模块（多文件项目）
+    if workspace and workspace not in sys.path:
+        sys.path.insert(0, workspace)
 
     globals_dict = {"__name__": "__main__", "__builtins__": __builtins__}
     old_out, old_err, old_in = sys.stdout, sys.stderr, sys.stdin

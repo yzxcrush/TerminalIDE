@@ -61,6 +61,12 @@ class EditorViewModel : ViewModel() {
     private val _lastResult = MutableStateFlow<RunResult?>(null)
     val lastResult: StateFlow<RunResult?> = _lastResult.asStateFlow()
 
+    private val _currentFile = MutableStateFlow<String?>(null)
+    val currentFile: StateFlow<String?> = _currentFile.asStateFlow()
+
+    private val _hasError = MutableStateFlow(false)
+    val hasError: StateFlow<Boolean> = _hasError.asStateFlow()
+
     private var outputJob: Job? = null
 
     init {
@@ -87,10 +93,11 @@ class EditorViewModel : ViewModel() {
         autoSaveJob = viewModelScope.launch {
             delay(1500)
             withContext(Dispatchers.IO) {
-                val file = File(
-                    sandbox.languageDir(_language.value.fileExtension),
-                    "main.${_language.value.fileExtension}"
-                )
+                val file = _currentFile.value?.let { File(it) }
+                    ?: File(
+                        sandbox.languageDir(_language.value.fileExtension),
+                        "main.${_language.value.fileExtension}"
+                    )
                 runCatching { file.writeText(text) }
             }
         }
@@ -142,6 +149,7 @@ class EditorViewModel : ViewModel() {
         _output.value = ""
         _lastResult.value = null
         _isRunning.value = true
+        _hasError.value = false
 
         outputJob?.cancel()
         runningBackend = backend
@@ -157,6 +165,8 @@ class EditorViewModel : ViewModel() {
                 val result = backend.run(code, stdin)
                 _lastResult.value = result
                 appendOutput("\n—— 退出码 ${result.exitCode} · 耗时 ${result.durationMs}ms ——\n")
+                _hasError.value = result.exitCode != 0 ||
+                    _output.value.contains("Traceback (most recent call last)")
             } catch (t: Throwable) {
                 appendOutput("\n[运行异常] ${t}\n")
             } finally {
@@ -175,6 +185,7 @@ class EditorViewModel : ViewModel() {
         runningBackend = null
         outputJob?.cancel()
         _isRunning.value = false
+        _hasError.value = false
         appendOutput("\n[已手动停止]\n")
     }
 
@@ -185,11 +196,14 @@ class EditorViewModel : ViewModel() {
 
     fun save() {
         viewModelScope.launch(Dispatchers.IO) {
-            val file = File(
-                sandbox.languageDir(_language.value.fileExtension),
-                "main.${_language.value.fileExtension}"
-            )
+            val file = _currentFile.value?.let { File(it) }
+                ?: File(
+                    sandbox.languageDir(_language.value.fileExtension),
+                    "main.${_language.value.fileExtension}"
+                )
+            file.parentFile?.mkdirs()
             file.writeText(_code.value)
+            _currentFile.value = file.absolutePath
             refreshFiles()
         }
     }
@@ -206,6 +220,9 @@ class EditorViewModel : ViewModel() {
                 codeByLang[lang] = text
             }
             _code.value = text
+            _currentFile.value = path
+            _output.value = ""
+            _lastResult.value = null
         }
     }
 

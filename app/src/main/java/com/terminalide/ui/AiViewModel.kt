@@ -104,6 +104,19 @@ class AiViewModel : ViewModel() {
         streamReply(prompt, _messages.value, currentLanguage, currentCode, displayUser = "【$label】$prompt")
     }
 
+    /** 分析运行报错：把代码 + 错误输出交给 AI，给出修复方案。 */
+    fun analyzeError(currentLanguage: Language, currentCode: String, errorText: String) {
+        if (_isThinking.value) return
+        streamReply(
+            "程序运行报错了，请分析原因并给出可直接运行的修复后完整代码。\n\n错误输出：\n```\n" +
+                errorText.takeLast(4000) + "\n```",
+            _messages.value,
+            currentLanguage,
+            currentCode,
+            displayUser = "【分析报错】",
+        )
+    }
+
     /** 统一流式对话：先插入用户消息 + 空助手气泡，再边生成边更新（含节流）。 */
     private fun streamReply(
         userText: String,

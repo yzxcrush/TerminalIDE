@@ -102,6 +102,7 @@ fun MainScreen(
     val output by editorVm.output.collectAsStateWithLifecycle()
     val stdin by editorVm.stdin.collectAsStateWithLifecycle()
     val isRunning by editorVm.isRunning.collectAsStateWithLifecycle()
+    val hasError by editorVm.hasError.collectAsStateWithLifecycle()
     val files by editorVm.files.collectAsStateWithLifecycle()
 
     ModalNavigationDrawer(
@@ -299,6 +300,8 @@ fun MainScreen(
                         onStdinChange = editorVm::updateStdin,
                         onStop = editorVm::stop,
                         onClear = editorVm::clearOutput,
+                        hasError = hasError,
+                        onAnalyzeError = { aiVm.analyzeError(language, code, output) },
                         modifier = Modifier.weight(consoleFraction).fillMaxWidth(),
                     )
                 }
@@ -329,6 +332,10 @@ fun MainScreen(
                                 currentLanguage = language,
                                 currentCode = code,
                                 onInsertCode = { newCode -> editorVm.updateCode(newCode) },
+                                onApplyAndRun = { newCode ->
+                                    editorVm.updateCode(newCode)
+                                    editorVm.run()
+                                },
                             )
                         }
                     }

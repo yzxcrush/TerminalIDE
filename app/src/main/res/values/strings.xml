@@ -71,4 +71,6 @@
     <string name="settings_download_url">下载 URL</string>
     <string name="settings_language">语言 / Language</string>
     <string name="settings_language_system">跟随系统</string>
+    <string name="console_ai_analyze">AI 分析报错</string>
+    <string name="ai_apply_run">应用并运行</string>
 </resources>

@@ -121,6 +121,7 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
                 sandbox.sitePackages.absolutePath,
                 stdin,
                 b,
+                sandbox.languageDir("py").absolutePath,
             )
             exit = res.asList()[0].toInt()
         } catch (t: Throwable) {
