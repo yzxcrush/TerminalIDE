@@ -107,6 +107,14 @@ fun CodeEditor(
         if (delta == 1 && new.selection.collapsed) {
             val pos = new.selection.start
             val ch = if (pos in 1..newText.length) newText[pos - 1] else ' '
+            // —— 输入闭合符且下一个字符正是它 → 跳过，避免重复 ——
+            if (ch == ')' || ch == ']' || ch == '}') {
+                if (pos < newText.length && newText[pos] == ch) {
+                    val without = newText.substring(0, pos) + newText.substring(pos + 1)
+                    applyText(without, TextRange(pos))
+                    return
+                }
+            }
             // —— 括号自动配对 ——
             val close = when (ch) {
                 '(' -> ")"
