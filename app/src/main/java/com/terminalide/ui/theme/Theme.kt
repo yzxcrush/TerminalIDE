@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 fun TerminalIdeTheme(
     darkTheme: Boolean = true,
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {

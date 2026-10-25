@@ -1,6 +1,8 @@
 package com.terminalide
 
 import android.app.Application
+import com.chaquo.python.Python
+import com.chaquo.python.android.AndroidPlatform
 import com.terminalide.ai.AiService
 import com.terminalide.backend.BackendRegistry
 import com.terminalide.backend.NdkToolchain
@@ -38,11 +40,14 @@ class TerminalIdeApp : Application() {
         installCrashHandler()
         startupError = null
 
-        // 【诊断版】临时跳过 Python 启动，用于定位闪退根因。
-        pythonStarted = false
-        try {
-            android.widget.Toast.makeText(this, "诊断版：已跳过 Python 启动", android.widget.Toast.LENGTH_LONG).show()
-        } catch (_: Throwable) {
+        // 1) 启动嵌入式 CPython（等价于 PyApplication 的做法）
+        pythonStarted = try {
+            if (!Python.isStarted()) {
+                Python.start(AndroidPlatform(this))
+            }
+            true
+        } catch (t: Throwable) {
+            false
         }
 
         // 逐个初始化服务，任何异常记录到 startupError 并在界面上显示，而不是闪退
@@ -72,7 +77,15 @@ class TerminalIdeApp : Application() {
                 logFile.writeText(sb.toString())
             } catch (_: Throwable) {
             }
-            defaultHandler?.uncaughtException(thread, throwable)
+            // 弹 Toast 显示崩溃原因，并延迟崩溃，让用户能看到
+            try {
+                val main = android.os.Handler(android.os.Looper.getMainLooper())
+                val msg = "崩溃: ${throwable.javaClass.simpleName}: ${throwable.message}"
+                main.post { android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show() }
+                main.postDelayed({ defaultHandler?.uncaughtException(thread, throwable) }, 8000)
+            } catch (_: Throwable) {
+                defaultHandler?.uncaughtException(thread, throwable)
+            }
         }
     }
 
