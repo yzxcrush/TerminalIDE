@@ -1,8 +1,6 @@
 package com.terminalide
 
 import android.app.Application
-import com.chaquo.python.Python
-import com.chaquo.python.android.AndroidPlatform
 import com.terminalide.ai.AiService
 import com.terminalide.backend.BackendRegistry
 import com.terminalide.backend.NdkToolchain
@@ -38,25 +36,27 @@ class TerminalIdeApp : Application() {
         super.onCreate()
         instance = this
         installCrashHandler()
+        startupError = null
 
-        // 【诊断版】临时跳过 Python 启动，用于确认闪退是否由 Chaquopy/Python 原生层导致。
-        // 若此版能正常打开（并弹出提示），则说明是 Python 原生崩溃，再恢复并换方案。
+        // 【诊断版】临时跳过 Python 启动，用于定位闪退根因。
         pythonStarted = false
         try {
             android.widget.Toast.makeText(this, "诊断版：已跳过 Python 启动", android.widget.Toast.LENGTH_LONG).show()
         } catch (_: Throwable) {
         }
 
-        // 2) 初始化沙箱与服务
-        sandbox = Sandbox(this)
-        settings = SettingsStore(this)
-        toolchain = NdkToolchain(sandbox)
-        packageManager = PackageManager(this, sandbox, settings)
-        backends = BackendRegistry(sandbox, toolchain)
-        aiService = AiService(this, settings)
-
-        // 3) 若 APK 打包了 assets/toolchain，首次运行解压到 files/toolchain 并赋予执行权限
-        installToolchain()
+        // 逐个初始化服务，任何异常记录到 startupError 并在界面上显示，而不是闪退
+        try {
+            sandbox = Sandbox(this)
+            settings = SettingsStore(this)
+            toolchain = NdkToolchain(sandbox)
+            packageManager = PackageManager(this, sandbox, settings)
+            backends = BackendRegistry(sandbox, toolchain)
+            aiService = AiService(this, settings)
+            installToolchain()
+        } catch (t: Throwable) {
+            startupError = "服务初始化失败: ${t}\n${t.stackTraceToString().take(2000)}"
+        }
     }
 
     private fun installCrashHandler() {
@@ -82,13 +82,17 @@ class TerminalIdeApp : Application() {
         try {
             AssetInstaller.install(this, "toolchain", sandbox.toolchain)
         } catch (t: Throwable) {
-            // 工具链未打包时忽略（可通过 scripts/fetch_toolchain.sh 获取或运行期下载）
+            // 工具链未打包时忽略
         }
         binDir.listFiles()?.forEach { it.setExecutable(true, false) }
     }
 
     companion object {
         lateinit var instance: TerminalIdeApp
+            private set
+
+        /** 启动阶段异常（用于界面显示，而非闪退）。 */
+        var startupError: String? = null
             private set
     }
 }
