@@ -72,5 +72,5 @@
     <string name="settings_language">Language / 语言</string>
     <string name="settings_language_system">Follow system</string>
     <string name="console_ai_analyze">AI analyze error</string>
-    <string name="ai_apply_run">Apply & run</string>
+    <string name="ai_apply_run">Apply &amp; run</string>
 </resources>
