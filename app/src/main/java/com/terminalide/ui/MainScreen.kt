@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +65,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.terminalide.core.Language
 import com.terminalide.ui.components.AiSidebar
 import com.terminalide.ui.components.CodeEditor
+import com.terminalide.ui.components.ConsoleInputBar
 import com.terminalide.ui.components.FileTreeDrawer
 import com.terminalide.ui.components.OutputPanel
 import com.terminalide.ui.components.PackageManagerPanel
@@ -197,10 +199,16 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                     }
                 },
                 bottomBar = {
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp,
-                    ) {
+                    // 底部：交互输入条（运行时，Pydroid 风格）+ 导航栏
+                    Column {
+                        if (isRunning) {
+                            ConsoleInputBar(onSend = editorVm::sendStdin)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+                        }
+                        NavigationBar(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 8.dp,
+                        ) {
                         NavigationBarItem(
                             selected = false,
                             onClick = { if (isRunning) editorVm.stop() else editorVm.run() },
@@ -224,6 +232,7 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                             icon = { Icon(Icons.Filled.Inventory2, contentDescription = "包管理") },
                             label = { Text("包管理") },
                         )
+                        }
                     }
                 },
             ) { innerPadding ->
@@ -272,7 +281,6 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                         isRunning = isRunning,
                         stdin = stdin,
                         onStdinChange = editorVm::updateStdin,
-                        onSendStdin = editorVm::sendStdin,
                         onStop = editorVm::stop,
                         onClear = editorVm::clearOutput,
                         modifier = Modifier.weight(consoleFraction).fillMaxWidth(),
