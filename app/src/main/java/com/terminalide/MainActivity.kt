@@ -23,6 +23,7 @@ import com.terminalide.ui.AiViewModel
 import com.terminalide.ui.EditorViewModel
 import com.terminalide.ui.MainScreen
 import com.terminalide.ui.PackageViewModel
+import com.terminalide.ui.ReplViewModel
 import com.terminalide.ui.theme.TerminalIdeTheme
 
 class MainActivity : ComponentActivity() {
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
                     val editorVm: EditorViewModel = viewModel()
                     val packageVm: PackageViewModel = viewModel()
                     val aiVm: AiViewModel = viewModel()
+                    val replVm: ReplViewModel = viewModel()
 
                     val pending by pendingOpen
                     LaunchedEffect(pending) {
@@ -55,6 +57,7 @@ class MainActivity : ComponentActivity() {
                         editorVm = editorVm,
                         packageVm = packageVm,
                         aiVm = aiVm,
+                        replVm = replVm,
                     )
                 }
             }

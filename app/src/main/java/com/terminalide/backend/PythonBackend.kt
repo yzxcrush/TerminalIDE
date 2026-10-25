@@ -80,6 +80,27 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
         bridge?.closed = true
     }
 
+    /**
+     * REPL 单次执行：在持久命名空间里执行代码，返回输出文本（表达式会自动打印结果）。
+     */
+    suspend fun replExec(code: String): String = withContext(Dispatchers.IO) {
+        try {
+            val py = Python.getInstance()
+            val runner = py.getModule("ide_runner")
+            runner.callAttr("repl_exec", code).toString()
+        } catch (t: Throwable) {
+            "错误：${t.message ?: t}\n"
+        }
+    }
+
+    /** 清空 REPL 命名空间。 */
+    suspend fun replReset() = withContext(Dispatchers.IO) {
+        runCatching {
+            Python.getInstance().getModule("ide_runner").callAttr("repl_reset")
+        }
+        Unit
+    }
+
     override suspend fun run(code: String, stdin: String): RunResult = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         val q = LinkedBlockingQueue<String>()

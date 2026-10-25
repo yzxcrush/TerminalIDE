@@ -116,3 +116,41 @@ def _system_exit_code(exc):
     if isinstance(exc.code, int):
         return exc.code
     return 1
+
+
+# ==================== REPL ====================
+# 持久命名空间：跨多次 repl_exec 保留变量/导入
+_REPL_NS = {"__name__": "__main__", "__builtins__": __builtins__}
+
+
+def repl_exec(code):
+    """REPL 单次执行：在持久命名空间里执行一行/一段代码，返回捕获到的输出文本。
+
+    先按表达式 eval（自动打印 repr），语法不合法再按语句 exec，
+    这样一个输入框既能算 `1+1` 也能写 `for ...:`。
+    """
+    out = io.StringIO()
+    old_out, old_err = sys.stdout, sys.stderr
+    sys.stdout, sys.stderr = out, out
+    try:
+        try:
+            value = eval(compile(code, "<repl>", "eval"), _REPL_NS)
+            if value is not None:
+                print(repr(value))
+        except SyntaxError:
+            exec(compile(code, "<repl>", "exec"), _REPL_NS)
+    except SystemExit:
+        print("[已退出]")
+    except BaseException:
+        traceback.print_exc()
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+    return out.getvalue()
+
+
+def repl_reset():
+    """清空 REPL 命名空间（保留 __builtins__）。"""
+    _REPL_NS.clear()
+    _REPL_NS.update({"__name__": "__main__", "__builtins__": __builtins__})
+    return True
+

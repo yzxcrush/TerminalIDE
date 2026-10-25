@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
@@ -69,6 +70,7 @@ import com.terminalide.ui.components.ConsoleInputBar
 import com.terminalide.ui.components.FileTreeDrawer
 import com.terminalide.ui.components.OutputPanel
 import com.terminalide.ui.components.PackageManagerPanel
+import com.terminalide.ui.components.ReplSheet
 import com.terminalide.ui.components.SettingsPanel
 import com.terminalide.ui.theme.TopBarGradient
 import kotlinx.coroutines.launch
@@ -79,13 +81,19 @@ import kotlinx.coroutines.launch
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiViewModel) {
+fun MainScreen(
+    editorVm: EditorViewModel,
+    packageVm: PackageViewModel,
+    aiVm: AiViewModel,
+    replVm: ReplViewModel,
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
     var showAi by remember { mutableStateOf(false) }
     var showPackages by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
+    var showRepl by remember { mutableStateOf(false) }
 
     val language by editorVm.language.collectAsStateWithLifecycle()
     val code by editorVm.code.collectAsStateWithLifecycle()
@@ -232,6 +240,12 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                             icon = { Icon(Icons.Filled.Inventory2, contentDescription = "包管理") },
                             label = { Text("包管理") },
                         )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { showRepl = true },
+                            icon = { Icon(Icons.Filled.Code, contentDescription = "REPL") },
+                            label = { Text("REPL") },
+                        )
                         }
                     }
                 },
@@ -336,6 +350,15 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
             sheetState = rememberModalBottomSheetState(),
         ) {
             SettingsPanel(packageVm = packageVm, aiVm = aiVm)
+        }
+    }
+
+    if (showRepl) {
+        ModalBottomSheet(
+            onDismissRequest = { showRepl = false },
+            sheetState = rememberModalBottomSheetState(),
+        ) {
+            ReplSheet(replVm)
         }
     }
 }
