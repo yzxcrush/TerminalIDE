@@ -356,7 +356,7 @@ fun MainScreen(
     if (showRepl) {
         ModalBottomSheet(
             onDismissRequest = { showRepl = false },
-            sheetState = rememberModalBottomSheetState(),
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             ReplSheet(replVm)
         }
