@@ -35,6 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,6 +81,9 @@ fun AiSidebar(
     val modelUrl by aiVm.modelUrl.collectAsStateWithLifecycle()
     val downloadProgress by aiVm.downloadProgress.collectAsStateWithLifecycle()
     val modelPath by aiVm.modelPath.collectAsStateWithLifecycle()
+
+    // 本地模型管理区默认收起，避免占满面板、挤压聊天区
+    var showModelMgmt by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -169,67 +175,65 @@ fun AiSidebar(
                 }
                 AiBackendKind.LOCAL -> {
                     Text(
-                        "内置 llama.cpp 推理引擎（离线）。首次使用请下载 GGUF 模型。",
+                        if (modelPath.isNotEmpty())
+                            "本地模型：${modelPath.substringAfterLast('/')}"
+                        else "内置 llama.cpp 引擎（离线），尚未下载模型",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "推荐模型（hf-mirror 镜像，点选自动填入 URL）：",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(
-                            onClick = { aiVm.updateModelUrl(MODEL_R1_7B) },
-                            modifier = Modifier.weight(1f),
-                        ) { Text("R1-7B 4.7G", fontSize = 12.sp) }
-                        OutlinedButton(
-                            onClick = { aiVm.updateModelUrl(MODEL_R1_15B) },
-                            modifier = Modifier.weight(1f),
-                        ) { Text("R1-1.5B 1.1G", fontSize = 12.sp) }
+                    TextButton(onClick = { showModelMgmt = !showModelMgmt }) {
+                        Text(if (showModelMgmt) "收起模型管理" else "模型管理（下载 / 更换）")
                     }
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = modelUrl,
-                        onValueChange = aiVm::updateModelUrl,
-                        label = { Text("模型下载 URL") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Button(
-                        onClick = aiVm::downloadModel,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text("下载模型")
-                    }
-                    if (downloadProgress.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                downloadProgress,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                    if (modelPath.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
+                    if (showModelMgmt) {
                         Text(
-                            "模型路径：$modelPath",
+                            "推荐模型（hf-mirror 镜像，点选自动填入 URL）：",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.bodySmall,
                         )
+                        Spacer(Modifier.height(6.dp))
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = { aiVm.updateModelUrl(MODEL_R1_7B) },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("R1-7B 4.7G", fontSize = 12.sp) }
+                            OutlinedButton(
+                                onClick = { aiVm.updateModelUrl(MODEL_R1_15B) },
+                                modifier = Modifier.weight(1f),
+                            ) { Text("R1-1.5B 1.1G", fontSize = 12.sp) }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = modelUrl,
+                            onValueChange = aiVm::updateModelUrl,
+                            label = { Text("模型下载 URL") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Button(
+                            onClick = aiVm::downloadModel,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text("下载模型")
+                        }
+                        if (downloadProgress.isNotEmpty()) {
+                            Spacer(Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    downloadProgress,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodySmall,
+                                )
+                            }
+                        }
                     }
                 }
             }

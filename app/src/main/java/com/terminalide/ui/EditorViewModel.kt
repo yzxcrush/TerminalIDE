@@ -148,6 +148,10 @@ class EditorViewModel : ViewModel() {
     }
 
     fun stop() {
+        // 先让阻塞中的 input() 收到 EOF，否则 Python 线程会一直卡在 readLine()
+        runningBackend?.closeInput()
+        runningBackend?.reset()
+        runningBackend = null
         outputJob?.cancel()
         _isRunning.value = false
         _output.value = _output.value + "\n[已手动停止]\n"
