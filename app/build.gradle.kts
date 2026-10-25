@@ -34,8 +34,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // 关闭 R8 压缩：Chaquopy + R8 在部分机型会导致「release 才闪退」，
+            // 先以可运行性优先，牺牲一点包体积。
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -80,8 +82,8 @@ android {
 
 chaquopy {
     defaultConfig {
-        // Python 3.12：64 位、minSdk 24、arm64-v8a 均可满足。
-        version = "3.12"
+        // Python 3.13：对 16KB 内存页设备（新机型 / ColorOS 16 常见）兼容性更好
+        version = "3.13"
 
         // 构建期只预装基础包（均为纯 Python 包，不现场编译 C 扩展）。
         // 其余任意 PyPI 包在运行期动态安装到沙箱 site-packages。

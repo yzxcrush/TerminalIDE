@@ -37,6 +37,7 @@ class TerminalIdeApp : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        installCrashHandler()
 
         // 1) 启动嵌入式 CPython（等价于 PyApplication 的做法）
         pythonStarted = try {
@@ -58,6 +59,23 @@ class TerminalIdeApp : Application() {
 
         // 3) 若 APK 打包了 assets/toolchain，首次运行解压到 files/toolchain 并赋予执行权限
         installToolchain()
+    }
+
+    private fun installCrashHandler() {
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                val dir = getExternalFilesDir(null) ?: filesDir
+                val logFile = File(dir, "crash.log")
+                val sb = StringBuilder()
+                sb.append("time=").append(System.currentTimeMillis()).append('\n')
+                sb.append("thread=").append(thread?.name).append('\n')
+                sb.append(android.util.Log.getStackTraceString(throwable)).append('\n')
+                logFile.writeText(sb.toString())
+            } catch (_: Throwable) {
+            }
+            defaultHandler?.uncaughtException(thread, throwable)
+        }
     }
 
     private fun installToolchain() {
