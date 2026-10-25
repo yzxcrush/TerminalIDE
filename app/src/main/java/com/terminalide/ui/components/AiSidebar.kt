@@ -118,7 +118,7 @@ fun AiSidebar(
             Spacer(Modifier.height(12.dp))
 
             when (kind) {
-                AiBackendKind.DEEPSEEK -> {
+                AiBackendKind.DEEPSEEK, AiBackendKind.DEEPSEEK_R1 -> {
                     OutlinedTextField(
                         value = apiKeyInput,
                         onValueChange = aiVm::updateApiKeyInput,

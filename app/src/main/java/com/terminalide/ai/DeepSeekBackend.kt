@@ -20,9 +20,9 @@ import java.util.concurrent.TimeUnit
 class DeepSeekBackend(
     private val settings: SettingsStore,
     private val apiKeyStore: ApiKeyStore,
+    private val model: String = MODEL_CHAT,
+    override val kind: AiBackendKind = AiBackendKind.DEEPSEEK,
 ) : AiBackend {
-
-    override val kind: AiBackendKind = AiBackendKind.DEEPSEEK
 
     private val http = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -37,7 +37,7 @@ class DeepSeekBackend(
         val key = apiKeyStore.loadKey()?.takeIf { it.isNotBlank() }
             ?: throw IllegalStateException("未配置 API Key")
         val body = JSONObject()
-            .put("model", MODEL)
+            .put("model", model)
             .put("messages", messagesToJson(history))
             .put("stream", false)
             .put("temperature", 0.3)
@@ -65,7 +65,7 @@ class DeepSeekBackend(
         return try {
             withContext(Dispatchers.IO) {
                 val body = JSONObject()
-                    .put("model", MODEL)
+                    .put("model", model)
                     .put("messages", JSONArray().put(
                         JSONObject().put("role", "user").put("content", "ping")
                     ))
@@ -122,6 +122,7 @@ class DeepSeekBackend(
     }
 
     companion object {
-        const val MODEL = "deepseek-chat"
+        const val MODEL_CHAT = "deepseek-chat"
+        const val MODEL_R1 = "deepseek-reasoner"
     }
 }

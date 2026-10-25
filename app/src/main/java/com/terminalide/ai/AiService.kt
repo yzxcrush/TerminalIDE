@@ -21,7 +21,8 @@ class AiService(
 
     private val apiKeyStore = ApiKeyStore(context)
     private val local = LocalModelBackend(context, settings)
-    private val deepseek = DeepSeekBackend(settings, apiKeyStore)
+    private val deepseek = DeepSeekBackend(settings, apiKeyStore, DeepSeekBackend.MODEL_CHAT, AiBackendKind.DEEPSEEK)
+    private val deepseekR1 = DeepSeekBackend(settings, apiKeyStore, DeepSeekBackend.MODEL_R1, AiBackendKind.DEEPSEEK_R1)
     private val modelsDir = File(context.filesDir, "models").apply { mkdirs() }
 
     // ---- 后端切换 ----
@@ -35,6 +36,7 @@ class AiService(
     fun activeBackend(): AiBackend = when (currentKind()) {
         AiBackendKind.LOCAL -> local
         AiBackendKind.DEEPSEEK -> deepseek
+        AiBackendKind.DEEPSEEK_R1 -> deepseekR1
     }
 
     suspend fun isReady(): Boolean = activeBackend().isReady()
