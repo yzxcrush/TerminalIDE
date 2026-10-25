@@ -92,7 +92,7 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
                             .clickable {
                                 settingsStore.appLanguage = code
                                 currentLang = code
-                                (context as? android.app.Activity)?.recreate()
+                                context.findActivity()?.recreate()
                             }
                             .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -271,4 +271,14 @@ fun SettingsPanel(packageVm: PackageViewModel, aiVm: AiViewModel) {
             }
         }
     }
+}
+
+/** 从 Context 包装链里找到宿主 Activity（Compose 的 LocalContext 通常不是 Activity 本身）。 */
+private fun android.content.Context.findActivity(): android.app.Activity? {
+    var c: android.content.Context? = this
+    while (c is android.content.ContextWrapper) {
+        if (c is android.app.Activity) return c
+        c = c.baseContext
+    }
+    return null
 }
