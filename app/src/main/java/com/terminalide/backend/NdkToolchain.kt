@@ -118,11 +118,11 @@ class NdkToolchain(private val sandbox: Sandbox) {
             val stderr = StringBuilder()
             val tOut = streamReader(proc.inputStream) { line ->
                 stdout.appendLine(line)
-                onOutput(OutputChunk(OutputChunk.Stream.STDOUT, line))
+                onOutput(OutputChunk(OutputChunk.Stream.STDOUT, line + "\n"))
             }
             val tErr = streamReader(proc.errorStream) { line ->
                 stderr.appendLine(line)
-                onOutput(OutputChunk(OutputChunk.Stream.STDERR, line))
+                onOutput(OutputChunk(OutputChunk.Stream.STDERR, line + "\n"))
             }
 
             val finished = proc.waitFor(RUN_TIMEOUT_SEC, TimeUnit.SECONDS)

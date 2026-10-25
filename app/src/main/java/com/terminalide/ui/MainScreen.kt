@@ -235,6 +235,7 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                         isRunning = isRunning,
                         stdin = stdin,
                         onStdinChange = editorVm::updateStdin,
+                        onSendStdin = editorVm::sendStdin,
                         onStop = editorVm::stop,
                         onClear = editorVm::clearOutput,
                         modifier = Modifier.weight(0.4f).fillMaxWidth(),

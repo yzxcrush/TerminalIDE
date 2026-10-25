@@ -84,6 +84,14 @@ class EditorViewModel : ViewModel() {
         _stdin.value = text
     }
 
+    @Volatile
+    private var runningBackend: com.terminalide.backend.LanguageBackend? = null
+
+    /** 运行中向程序送入一行标准输入（交互式控制台）。 */
+    fun sendStdin(line: String) {
+        runningBackend?.sendInput(line)
+    }
+
     /** 从外部（文件管理器「打开方式」）载入源码，并按扩展名切换语言。 */
     fun openExternal(text: String, fileName: String?) {
         val lang = when {
@@ -114,12 +122,13 @@ class EditorViewModel : ViewModel() {
         _isRunning.value = true
 
         outputJob?.cancel()
+        runningBackend = backend
         outputJob = viewModelScope.launch {
             // UNDISPATCHED：让 collector 在 run 之前先完成订阅，避免丢实时输出
             val collectJob = launch(start = CoroutineStart.UNDISPATCHED) {
                 backend.output.collect { chunk ->
                     val prefix = if (chunk.stream == OutputChunk.Stream.STDERR) "[stderr] " else ""
-                    _output.value = _output.value + prefix + chunk.text + "\n"
+                    _output.value = _output.value + prefix + chunk.text
                 }
             }
             try {
@@ -131,6 +140,8 @@ class EditorViewModel : ViewModel() {
                 _output.value = _output.value + "\n[运行异常] ${t}\n"
             } finally {
                 collectJob.cancel()
+                backend.closeInput()
+                runningBackend = null
                 _isRunning.value = false
             }
         }

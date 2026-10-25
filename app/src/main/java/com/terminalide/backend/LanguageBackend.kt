@@ -27,6 +27,12 @@ interface LanguageBackend {
     /** 输出流。 */
     val output: SharedFlow<OutputChunk>
 
+    /** 向正在运行的程序送入一行标准输入（交互式控制台）。 */
+    fun sendInput(line: String) {}
+
+    /** 关闭输入（EOF），让阻塞中的 readline 返回。 */
+    fun closeInput() {}
+
     /** 清理上一次运行的残留输出 / 状态。 */
     fun reset()
 }
