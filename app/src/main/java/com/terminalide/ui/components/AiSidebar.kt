@@ -1,6 +1,7 @@
 package com.terminalide.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -244,6 +246,33 @@ fun AiSidebar(
         ) {
             items(messages) { msg ->
                 MessageBubble(msg, onInsertCode)
+            }
+        }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+        // AI 快捷操作：一键把当前代码交给模型处理
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            listOf(
+                "解释代码" to "请解释当前编辑器里这段代码的作用，逐段说明，尽量简洁。",
+                "修复错误" to "请检查当前编辑器里这段代码的错误，并给出修复后的完整代码。",
+                "优化" to "请优化当前编辑器里这段代码，提升可读性和性能，给出完整代码。",
+                "加注释" to "请给当前编辑器里这段代码加上清晰的中文注释，输出完整代码。",
+                "生成测试" to "请为当前编辑器里这段代码生成测试用例。",
+            ).forEach { (label, prompt) ->
+                OutlinedButton(
+                    onClick = { aiVm.sendQuick(label, prompt, currentLanguage, currentCode) },
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    modifier = Modifier.height(30.dp),
+                ) {
+                    Text(label, fontSize = 11.sp)
+                }
             }
         }
 

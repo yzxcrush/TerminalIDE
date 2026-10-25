@@ -111,6 +111,25 @@ class AiViewModel : ViewModel() {
         return ai.extractCodeBlock(assistant.content)
     }
 
+    /** AI 快捷操作：用预设指令把当前编辑器代码发给模型（解释/修复/优化/注释/测试）。 */
+    fun sendQuick(label: String, prompt: String, currentLanguage: Language, currentCode: String) {
+        if (_isThinking.value) return
+        val history = _messages.value
+        _messages.value = history + AiMessage(AiMessage.Role.USER, "【$label】$prompt")
+        _isThinking.value = true
+        viewModelScope.launch {
+            try {
+                val reply = ai.chat(prompt, history, currentLanguage, currentCode)
+                _messages.value = _messages.value + AiMessage(AiMessage.Role.ASSISTANT, reply)
+            } catch (t: Throwable) {
+                _messages.value = _messages.value +
+                    AiMessage(AiMessage.Role.ASSISTANT, "⚠️ ${t.message ?: t.toString()}")
+            } finally {
+                _isThinking.value = false
+            }
+        }
+    }
+
     // ---- DeepSeek API Key ----
 
     fun updateApiKeyInput(text: String) {

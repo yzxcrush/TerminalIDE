@@ -44,8 +44,8 @@ class NdkToolchain(private val sandbox: Sandbox) {
 
     /** 工具链缺失时的提示信息。 */
     fun unavailableMessage(): String =
-        "未找到 C/C++ 交叉编译器。请运行 scripts/fetch_toolchain.sh 获取工具链，" +
-            "或将工具链放入 ${sandbox.toolchain.absolutePath}"
+        "C/C++ 编译器不可用：Android 10+ 禁止 App 执行私有目录内的二进制（SELinux 限制）。\n" +
+            "请改用 Python 页签，或在 Termux 中用 clang 编译 C/C++。"
 
     private fun resolveCompiler(vararg names: String): File? {
         for (name in names) {
