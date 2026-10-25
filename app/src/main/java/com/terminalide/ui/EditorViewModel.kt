@@ -84,6 +84,26 @@ class EditorViewModel : ViewModel() {
         _stdin.value = text
     }
 
+    /** 从外部（文件管理器「打开方式」）载入源码，并按扩展名切换语言。 */
+    fun openExternal(text: String, fileName: String?) {
+        val lang = when {
+            fileName?.endsWith(".py", ignoreCase = true) == true -> Language.PYTHON
+            fileName?.endsWith(".cpp", ignoreCase = true) == true ||
+                fileName?.endsWith(".cc", ignoreCase = true) == true ||
+                fileName?.endsWith(".cxx", ignoreCase = true) == true -> Language.CPP
+            fileName?.endsWith(".c", ignoreCase = true) == true -> Language.C
+            else -> _language.value
+        }
+        if (lang != _language.value) {
+            codeByLang[_language.value] = _code.value
+            _language.value = lang
+        }
+        _code.value = text
+        codeByLang[lang] = text
+        _output.value = ""
+        _lastResult.value = null
+    }
+
     fun run() {
         if (_isRunning.value) return
         val backend = backends.backendFor(_language.value)

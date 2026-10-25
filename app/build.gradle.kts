@@ -16,8 +16,8 @@ android {
         applicationId = "com.terminalide"
         minSdk = 24
         targetSdk = 35
-        versionCode = 13
-        versionName = "1.10.1"
+        versionCode = 14
+        versionName = "1.11.0"
 
         // 只打 arm64-v8a（Python 3.12+ 仅支持 64 位）
         ndk {
@@ -88,10 +88,14 @@ chaquopy {
         // 构建期只预装基础包（均为纯 Python 包，不现场编译 C 扩展）。
         // 其余任意 PyPI 包在运行期动态安装到沙箱 site-packages。
         pip {
-            install("pip")          // 运行期 pip install 的入口
+            install("pip")               // 运行期 pip install 的入口
             install("setuptools")
             install("wheel")
-            install("requests")     // 基础网络库示例
+            install("requests")          // 网络请求
+            install("beautifulsoup4")    // HTML/XML 解析
+            install("tqdm")              // 进度条
+            install("colorama")          // 彩色终端输出
+            install("rich")              // 富文本 / 表格 / 高亮
         }
     }
 }

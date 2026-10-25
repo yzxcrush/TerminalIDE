@@ -28,7 +28,13 @@ class NdkToolchain(private val sandbox: Sandbox) {
         CPP("cpp", "-std=c++17"),
     }
 
-    private val binDir: File get() = File(sandbox.toolchain, "bin")
+    // 工具链布局：<toolchain>/usr/{bin,include,lib}（clang 可重定位，基于自身位置查找）
+    private val binDir: File
+        get() {
+            val usrBin = File(sandbox.toolchain, "usr/bin")
+            return if (usrBin.isDirectory) usrBin else File(sandbox.toolchain, "bin")
+        }
+    private val libDir: File get() = File(sandbox.toolchain, "usr/lib")
 
     val clangPath: File? get() = resolveCompiler("aarch64-linux-android24-clang", "clang")
     val clangppPath: File? get() = resolveCompiler("aarch64-linux-android24-clang++", "clang++")
@@ -65,7 +71,6 @@ class NdkToolchain(private val sandbox: Sandbox) {
                 "--target=aarch64-linux-android24",
                 kind.stdFlag,
                 "-O2",
-                "-static",
                 "-s",
                 source.absolutePath,
                 "-o", output.absolutePath,
@@ -75,7 +80,7 @@ class NdkToolchain(private val sandbox: Sandbox) {
                 cmd += "--sysroot"
                 cmd += sysroot.absolutePath
             }
-            if (kind == Kind.CPP) cmd += "-static-libstdc++"
+            if (kind == Kind.CPP) cmd += "-stdlib=libc++"
             cmd += "-lm"
 
             runProcess(cmd, sandbox.build, COMPILE_TIMEOUT_SEC)
@@ -88,10 +93,12 @@ class NdkToolchain(private val sandbox: Sandbox) {
     suspend fun run(bin: File, stdin: String, onOutput: (OutputChunk) -> Unit): RunResult =
         withContext(Dispatchers.IO) {
             val start = System.currentTimeMillis()
-            val proc = ProcessBuilder(bin.absolutePath)
-                .directory(sandbox.build)
-                .redirectErrorStream(false)
-                .start()
+            val pb = ProcessBuilder(bin.absolutePath)
+            pb.directory(sandbox.build)
+            pb.redirectErrorStream(false)
+            // C++ 生成物依赖 libc++_shared.so，运行期同样指定库路径
+            pb.environment()["LD_LIBRARY_PATH"] = libDir.absolutePath
+            val proc = pb.start()
 
             // 把用户填写的标准输入写入子进程，随后关闭让程序读到 EOF
             val inputPayload = if (stdin.isEmpty() || stdin.endsWith("\n")) stdin else stdin + "\n"
@@ -149,10 +156,12 @@ class NdkToolchain(private val sandbox: Sandbox) {
 
     private fun runProcess(cmd: List<String>, cwd: File, timeoutSec: Long): RunResult {
         val start = System.currentTimeMillis()
-        val proc = ProcessBuilder(cmd)
-            .directory(cwd)
-            .redirectErrorStream(false)
-            .start()
+        val pb = ProcessBuilder(cmd)
+        pb.directory(cwd)
+        pb.redirectErrorStream(false)
+        // clang/ld.lld 依赖 libLLVM.so 等，需指定库搜索路径
+        pb.environment()["LD_LIBRARY_PATH"] = libDir.absolutePath
+        val proc = pb.start()
 
         val stdout = proc.inputStream.bufferedReader().use { it.readText() }
         val stderr = proc.errorStream.bufferedReader().use { it.readText() }
