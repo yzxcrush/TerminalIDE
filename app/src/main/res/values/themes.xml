@@ -1,0 +1,4 @@
+<resources>
+    <!-- Compose 负责绘制，宿主主题保持极简，深色由 Material3 动态取色控制 -->
+    <style name="Theme.TerminalIDE" parent="android:Theme.Material.NoActionBar" />
+</resources>
