@@ -27,6 +27,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,11 +38,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.terminalide.ai.AiBackendKind
 import com.terminalide.ai.AiMessage
 import com.terminalide.core.Language
 import com.terminalide.ui.AiViewModel
+
+/** hf-mirror 镜像上的 DeepSeek-R1 蒸馏模型（GGUF Q4_K_M）。 */
+private const val MODEL_R1_7B =
+    "https://hf-mirror.com/unsloth/DeepSeek-R1-Distill-Qwen-7B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf"
+private const val MODEL_R1_15B =
+    "https://hf-mirror.com/unsloth/DeepSeek-R1-Distill-Qwen-1.5B-GGUF/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf"
 
 private val SuccessGreen = Color(0xFF4CAF50)
 
@@ -159,10 +167,30 @@ fun AiSidebar(
                 }
                 AiBackendKind.LOCAL -> {
                     Text(
-                        "端侧模型不打包进 APK，运行期可选下载（离线推理）",
+                        "内置 llama.cpp 推理引擎（离线）。首次使用请下载 GGUF 模型。",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                     )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "推荐模型（hf-mirror 镜像，点选自动填入 URL）：",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        OutlinedButton(
+                            onClick = { aiVm.updateModelUrl(MODEL_R1_7B) },
+                            modifier = Modifier.weight(1f),
+                        ) { Text("R1-7B 4.7G", fontSize = 12.sp) }
+                        OutlinedButton(
+                            onClick = { aiVm.updateModelUrl(MODEL_R1_15B) },
+                            modifier = Modifier.weight(1f),
+                        ) { Text("R1-1.5B 1.1G", fontSize = 12.sp) }
+                    }
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = modelUrl,
