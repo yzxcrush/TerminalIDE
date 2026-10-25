@@ -220,19 +220,19 @@ fun CodeKeyboardBar(onInsert: (String) -> Unit, modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f))
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 6.dp, vertical = 3.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         symbols.forEach { (label, value) ->
             TextButton(
                 onClick = { onInsert(value) },
-                contentPadding = PaddingValues(horizontal = 9.dp, vertical = 0.dp),
-                modifier = Modifier.height(30.dp),
+                contentPadding = PaddingValues(horizontal = 13.dp, vertical = 0.dp),
+                modifier = Modifier.height(40.dp),
             ) {
                 Text(
                     label,
                     fontFamily = FontFamily.Monospace,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }

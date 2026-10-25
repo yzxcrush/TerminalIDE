@@ -274,6 +274,7 @@ fun AiSidebar(
                     onClick = { aiVm.sendQuick(label, prompt, currentLanguage, currentCode) },
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
                     modifier = Modifier.height(30.dp),
+                    enabled = ready && !isThinking,
                 ) {
                     Text(label, fontSize = 11.sp)
                 }

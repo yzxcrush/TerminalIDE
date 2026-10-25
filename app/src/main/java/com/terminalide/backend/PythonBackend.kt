@@ -23,18 +23,26 @@ class PythonIoBridge(
     @Volatile
     var closed: Boolean = false
 
-    /** Python 侧调用：阻塞直到有一行输入；closed 后返回 null 表示 EOF。 */
+    /** Python 侧调用：阻塞直到有一行输入；closed 或超时后返回 null 表示 EOF。 */
     fun readLine(): String? {
+        val deadline = System.currentTimeMillis() + INPUT_TIMEOUT_MS
         while (true) {
             if (closed) return null
-            val line = queue.poll(200, TimeUnit.MILLISECONDS) ?: continue
-            return line
+            val line = queue.poll(200, TimeUnit.MILLISECONDS)
+            if (line != null) return line
+            // 长时间无输入（例如用户忘了程序在等输入）→ 返回 EOF，避免线程永久挂起
+            if (System.currentTimeMillis() > deadline) return null
         }
     }
 
     fun emitOut(text: String) = emit(OutputChunk(OutputChunk.Stream.STDOUT, text))
 
     fun emitErr(text: String) = emit(OutputChunk(OutputChunk.Stream.STDERR, text))
+
+    companion object {
+        /** 无输入超时：10 分钟。 */
+        private const val INPUT_TIMEOUT_MS = 10 * 60 * 1000L
+    }
 }
 
 /**

@@ -10,6 +10,7 @@ import com.terminalide.core.RunResult
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -76,8 +77,28 @@ class EditorViewModel : ViewModel() {
         _lastResult.value = null
     }
 
+    private var autoSaveJob: Job? = null
+
     fun updateCode(text: String) {
         _code.value = text
+        // 自动保存（1.5s 防抖），避免忘记手动保存丢代码
+        autoSaveJob?.cancel()
+        autoSaveJob = viewModelScope.launch {
+            delay(1500)
+            withContext(Dispatchers.IO) {
+                val file = File(
+                    sandbox.languageDir(_language.value.fileExtension),
+                    "main.${_language.value.fileExtension}"
+                )
+                runCatching { file.writeText(text) }
+            }
+        }
+    }
+
+    /** 追加输出（限制最大长度，避免超大输出时字符串拼接 O(n²) 卡顿）。 */
+    private fun appendOutput(text: String) {
+        val cur = _output.value + text
+        _output.value = if (cur.length > MAX_OUTPUT_CHARS) cur.takeLast(MAX_OUTPUT_CHARS) else cur
     }
 
     fun updateStdin(text: String) {
@@ -128,16 +149,15 @@ class EditorViewModel : ViewModel() {
             val collectJob = launch(start = CoroutineStart.UNDISPATCHED) {
                 backend.output.collect { chunk ->
                     val prefix = if (chunk.stream == OutputChunk.Stream.STDERR) "[stderr] " else ""
-                    _output.value = _output.value + prefix + chunk.text
+                    appendOutput(prefix + chunk.text)
                 }
             }
             try {
                 val result = backend.run(code, stdin)
                 _lastResult.value = result
-                _output.value = _output.value +
-                    "\n—— 退出码 ${result.exitCode} · 耗时 ${result.durationMs}ms ——\n"
+                appendOutput("\n—— 退出码 ${result.exitCode} · 耗时 ${result.durationMs}ms ——\n")
             } catch (t: Throwable) {
-                _output.value = _output.value + "\n[运行异常] ${t}\n"
+                appendOutput("\n[运行异常] ${t}\n")
             } finally {
                 collectJob.cancel()
                 backend.closeInput()
@@ -154,7 +174,7 @@ class EditorViewModel : ViewModel() {
         runningBackend = null
         outputJob?.cancel()
         _isRunning.value = false
-        _output.value = _output.value + "\n[已手动停止]\n"
+        appendOutput("\n[已手动停止]\n")
     }
 
     fun clearOutput() {
@@ -216,5 +236,10 @@ class EditorViewModel : ViewModel() {
                     listOf(FileItem(f.name, f.absolutePath, isDirectory = false, language = lang))
                 }
             }
+    }
+
+    companion object {
+        /** 控制台输出最大保留字符数（超出丢弃最旧的，防止超大输出卡顿）。 */
+        private const val MAX_OUTPUT_CHARS = 300_000
     }
 }

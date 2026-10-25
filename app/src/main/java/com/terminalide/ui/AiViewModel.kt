@@ -89,20 +89,7 @@ class AiViewModel : ViewModel() {
         val text = _input.value.trim()
         if (text.isEmpty() || _isThinking.value) return
         _input.value = ""
-        val history = _messages.value
-        _messages.value = history + AiMessage(AiMessage.Role.USER, text)
-        _isThinking.value = true
-        viewModelScope.launch {
-            try {
-                val reply = ai.chat(text, history, currentLanguage, currentCode)
-                _messages.value = _messages.value + AiMessage(AiMessage.Role.ASSISTANT, reply)
-            } catch (t: Throwable) {
-                _messages.value = _messages.value +
-                    AiMessage(AiMessage.Role.ASSISTANT, "⚠️ ${t.message ?: t.toString()}")
-            } finally {
-                _isThinking.value = false
-            }
-        }
+        streamReply(text, _messages.value, currentLanguage, currentCode)
     }
 
     /** 从最近一条助手回复里提取代码块，供一键插入编辑器。 */
@@ -114,19 +101,48 @@ class AiViewModel : ViewModel() {
     /** AI 快捷操作：用预设指令把当前编辑器代码发给模型（解释/修复/优化/注释/测试）。 */
     fun sendQuick(label: String, prompt: String, currentLanguage: Language, currentCode: String) {
         if (_isThinking.value) return
-        val history = _messages.value
-        _messages.value = history + AiMessage(AiMessage.Role.USER, "【$label】$prompt")
+        streamReply(prompt, _messages.value, currentLanguage, currentCode, displayUser = "【$label】$prompt")
+    }
+
+    /** 统一流式对话：先插入用户消息 + 空助手气泡，再边生成边更新（含节流）。 */
+    private fun streamReply(
+        userText: String,
+        history: List<AiMessage>,
+        language: Language,
+        code: String,
+        displayUser: String = userText,
+    ) {
+        _messages.value = history +
+            AiMessage(AiMessage.Role.USER, displayUser) +
+            AiMessage(AiMessage.Role.ASSISTANT, "")
         _isThinking.value = true
         viewModelScope.launch {
+            val acc = StringBuilder()
+            var lastUi = 0L
             try {
-                val reply = ai.chat(prompt, history, currentLanguage, currentCode)
-                _messages.value = _messages.value + AiMessage(AiMessage.Role.ASSISTANT, reply)
+                ai.chatStream(userText, history, language, code) { chunk ->
+                    acc.append(chunk)
+                    val now = System.currentTimeMillis()
+                    if (now - lastUi > 60) {   // 节流：避免每个 token 都触发重组
+                        lastUi = now
+                        updateLastAssistant(acc.toString())
+                    }
+                }
             } catch (t: Throwable) {
-                _messages.value = _messages.value +
-                    AiMessage(AiMessage.Role.ASSISTANT, "⚠️ ${t.message ?: t.toString()}")
+                acc.append("⚠️ ${t.message ?: t.toString()}")
             } finally {
+                updateLastAssistant(acc.toString())
                 _isThinking.value = false
             }
+        }
+    }
+
+    private fun updateLastAssistant(content: String) {
+        val list = _messages.value.toMutableList()
+        val idx = list.indexOfLast { it.role == AiMessage.Role.ASSISTANT }
+        if (idx >= 0) {
+            list[idx] = AiMessage(AiMessage.Role.ASSISTANT, content)
+            _messages.value = list
         }
     }
 

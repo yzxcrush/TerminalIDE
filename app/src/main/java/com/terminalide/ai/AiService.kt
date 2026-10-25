@@ -61,6 +61,20 @@ class AiService(
         return activeBackend().chat(messages)
     }
 
+    /** 流式对话：边生成边回调增量文本，返回完整回复。 */
+    suspend fun chatStream(
+        userText: String,
+        history: List<AiMessage>,
+        language: Language,
+        code: String,
+        onChunk: (String) -> Unit,
+    ): String {
+        val messages = listOf(AiMessage(AiMessage.Role.SYSTEM, systemPrompt(language, code))) +
+            history +
+            AiMessage(AiMessage.Role.USER, userText)
+        return activeBackend().chatStream(messages, onChunk)
+    }
+
     private fun systemPrompt(language: Language, code: String): String = """
         你是运行在 Android 设备上的编程助手。当前语言：${language.displayName}。
         回答尽量简洁；若需要给出代码，请放在一个 Markdown 代码块（fenced code block）里。

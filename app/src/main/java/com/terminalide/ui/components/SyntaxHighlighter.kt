@@ -65,7 +65,14 @@ object SyntaxHighlighter {
 
     private val regexCache = mutableMapOf<Language, Regex>()
 
+    /** 超过该长度不再做语法高亮（性能保护）。 */
+    private const val MAX_HIGHLIGHT_CHARS = 60_000
+
     fun highlight(code: String, language: Language, palette: Palette): AnnotatedString {
+        // 超大文件跳过语法高亮，避免每次按键全量正则导致卡顿
+        if (code.length > MAX_HIGHLIGHT_CHARS) {
+            return AnnotatedString(code)
+        }
         val regex = regexCache.getOrPut(language) { patternFor(language) }
         // PREPROCESSOR / TYPE 分组只在 C/C++ 的正则里存在；对 Python 访问这些名字会抛
         // IllegalArgumentException（No capturing group ...），因此必须按语言门控。

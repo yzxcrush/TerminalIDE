@@ -30,6 +30,13 @@ class DeepSeekBackend(
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
+    /** 流式请求用：无读超时（SSE 长连接）。 */
+    private val streamHttp = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(0, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
+
     override suspend fun isReady(): Boolean =
         !apiKeyStore.loadKey().isNullOrBlank()
 
@@ -54,6 +61,52 @@ class DeepSeekBackend(
             }
             parseContent(text)
         }
+    }
+
+    override suspend fun chatStream(
+        history: List<AiMessage>,
+        onChunk: (String) -> Unit,
+    ): String = withContext(Dispatchers.IO) {
+        val key = apiKeyStore.loadKey()?.takeIf { it.isNotBlank() }
+            ?: throw IllegalStateException("未配置 API Key")
+        val body = JSONObject()
+            .put("model", model)
+            .put("messages", messagesToJson(history))
+            .put("stream", true)
+            .put("temperature", 0.3)
+            .put("max_tokens", 2048)
+
+        val req = requestBuilder(body.toString())
+            .header("Authorization", "Bearer $key")
+            .header("Accept", "text/event-stream")
+            .build()
+
+        val sb = StringBuilder()
+        streamHttp.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) {
+                throw IllegalStateException(
+                    "DeepSeek API 错误 HTTP ${resp.code}：${extractError(resp.body?.string().orEmpty())}"
+                )
+            }
+            val source = resp.body?.source() ?: throw IllegalStateException("空响应体")
+            while (true) {
+                val line = source.readUtf8Line() ?: break
+                val trimmed = line.trim()
+                if (!trimmed.startsWith("data:")) continue
+                val data = trimmed.removePrefix("data:").trim()
+                if (data.isEmpty() || data == "[DONE]") continue
+                runCatching {
+                    val choices = JSONObject(data).optJSONArray("choices")
+                    val delta = choices?.optJSONObject(0)?.optJSONObject("delta")
+                    val content = delta?.optString("content").orEmpty()
+                    if (content.isNotEmpty()) {
+                        sb.append(content)
+                        onChunk(content)
+                    }
+                }
+            }
+        }
+        sb.toString()
     }
 
     override suspend fun probe(): ProbeResult =
