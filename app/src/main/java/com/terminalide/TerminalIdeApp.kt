@@ -39,14 +39,12 @@ class TerminalIdeApp : Application() {
         instance = this
         installCrashHandler()
 
-        // 1) 启动嵌入式 CPython（等价于 PyApplication 的做法）
-        pythonStarted = try {
-            if (!Python.isStarted()) {
-                Python.start(AndroidPlatform(this))
-            }
-            true
-        } catch (t: Throwable) {
-            false
+        // 【诊断版】临时跳过 Python 启动，用于确认闪退是否由 Chaquopy/Python 原生层导致。
+        // 若此版能正常打开（并弹出提示），则说明是 Python 原生崩溃，再恢复并换方案。
+        pythonStarted = false
+        try {
+            android.widget.Toast.makeText(this, "诊断版：已跳过 Python 启动", android.widget.Toast.LENGTH_LONG).show()
+        } catch (_: Throwable) {
         }
 
         // 2) 初始化沙箱与服务
