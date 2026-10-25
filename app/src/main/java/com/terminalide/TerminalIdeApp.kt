@@ -40,14 +40,11 @@ class TerminalIdeApp : Application() {
         installCrashHandler()
         startupError = null
 
-        // 1) 启动嵌入式 CPython（等价于 PyApplication 的做法）
-        pythonStarted = try {
-            if (!Python.isStarted()) {
-                Python.start(AndroidPlatform(this))
-            }
-            true
-        } catch (t: Throwable) {
-            false
+        // 【诊断 v1.4】临时跳过 Python，确认闪退是否来自 Python 原生层（16KB 页）。
+        pythonStarted = false
+        try {
+            android.widget.Toast.makeText(this, "诊断：已跳过 Python", android.widget.Toast.LENGTH_LONG).show()
+        } catch (_: Throwable) {
         }
 
         // 逐个初始化服务，任何异常记录到 startupError 并在界面上显示，而不是闪退
