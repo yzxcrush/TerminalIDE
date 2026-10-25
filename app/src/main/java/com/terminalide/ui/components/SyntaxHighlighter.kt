@@ -67,6 +67,9 @@ object SyntaxHighlighter {
 
     fun highlight(code: String, language: Language, palette: Palette): AnnotatedString {
         val regex = regexCache.getOrPut(language) { patternFor(language) }
+        // PREPROCESSOR / TYPE 分组只在 C/C++ 的正则里存在；对 Python 访问这些名字会抛
+        // IllegalArgumentException（No capturing group ...），因此必须按语言门控。
+        val isCCpp = language != Language.PYTHON
         return buildAnnotatedString {
             var last = 0
             for (match in regex.findAll(code)) {
@@ -76,11 +79,12 @@ object SyntaxHighlighter {
                 val style = when {
                     match.groups["STRING"] != null -> SpanStyle(color = palette.string)
                     match.groups["COMMENT"] != null -> SpanStyle(color = palette.comment)
-                    match.groups["PREPROCESSOR"] != null -> SpanStyle(color = palette.preprocessor)
+                    isCCpp && match.groups["PREPROCESSOR"] != null ->
+                        SpanStyle(color = palette.preprocessor)
                     match.groups["NUMBER"] != null -> SpanStyle(color = palette.number)
                     match.groups["KEYWORD"] != null ->
                         SpanStyle(color = palette.keyword, fontWeight = FontWeight.SemiBold)
-                    match.groups["TYPE"] != null -> SpanStyle(color = palette.type)
+                    isCCpp && match.groups["TYPE"] != null -> SpanStyle(color = palette.type)
                     match.groups["FUNCTION"] != null -> SpanStyle(color = palette.function)
                     else -> SpanStyle(color = palette.plain)
                 }
