@@ -167,6 +167,8 @@ class EditorViewModel : ViewModel() {
                 appendOutput("\n—— 退出码 ${result.exitCode} · 耗时 ${result.durationMs}ms ——\n")
                 _hasError.value = result.exitCode != 0 ||
                     _output.value.contains("Traceback (most recent call last)")
+            } catch (t: kotlinx.coroutines.CancellationException) {
+                // 用户主动停止：静默退出，不打印协程取消异常
             } catch (t: Throwable) {
                 appendOutput("\n[运行异常] ${t}\n")
             } finally {
