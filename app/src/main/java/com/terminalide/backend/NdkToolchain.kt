@@ -85,13 +85,27 @@ class NdkToolchain(private val sandbox: Sandbox) {
      * 运行可执行文件，逐行实时回调 [onOutput]（供 UI 边跑边刷新），
      * 超时则强杀。返回运行结果。
      */
-    suspend fun run(bin: File, onOutput: (OutputChunk) -> Unit): RunResult =
+    suspend fun run(bin: File, stdin: String, onOutput: (OutputChunk) -> Unit): RunResult =
         withContext(Dispatchers.IO) {
             val start = System.currentTimeMillis()
             val proc = ProcessBuilder(bin.absolutePath)
                 .directory(sandbox.build)
                 .redirectErrorStream(false)
                 .start()
+
+            // 把用户填写的标准输入写入子进程，随后关闭让程序读到 EOF
+            val inputPayload = if (stdin.isEmpty() || stdin.endsWith("\n")) stdin else stdin + "\n"
+            val tIn = Thread {
+                try {
+                    proc.outputStream.use { it.write(inputPayload.toByteArray()) }
+                } catch (_: Throwable) {
+                    // 程序可能不读 stdin 就退出，写入失败可忽略
+                }
+            }.apply {
+                isDaemon = true
+                name = "proc-stdin-writer"
+                start()
+            }
 
             val stdout = StringBuilder()
             val stderr = StringBuilder()
@@ -112,6 +126,7 @@ class NdkToolchain(private val sandbox: Sandbox) {
             }
             tOut.join()
             tErr.join()
+            tIn.join(1000)
 
             val code = if (finished) proc.exitValue() else -1
             RunResult(code, stdout.toString(), stderr.toString(), System.currentTimeMillis() - start)

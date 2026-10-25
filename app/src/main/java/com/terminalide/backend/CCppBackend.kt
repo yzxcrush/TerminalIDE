@@ -23,7 +23,7 @@ abstract class CCppBackend(
 
     override fun reset() = Unit
 
-    override suspend fun run(code: String): RunResult = withContext(Dispatchers.IO) {
+    override suspend fun run(code: String, stdin: String): RunResult = withContext(Dispatchers.IO) {
         val src = File(sandbox.build, "main.${kind.sourceExt}")
         val bin = File(sandbox.build, "main.bin")
         src.writeText(code)
@@ -35,7 +35,7 @@ abstract class CCppBackend(
             return@withContext RunResult(compiled.exitCode, "", msg, compiled.durationMs)
         }
 
-        toolchain.run(bin) { chunk -> _output.tryEmit(chunk) }
+        toolchain.run(bin, stdin) { chunk -> _output.tryEmit(chunk) }
     }
 }
 

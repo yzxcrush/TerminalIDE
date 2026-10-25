@@ -49,6 +49,10 @@ class EditorViewModel : ViewModel() {
     private val _output = MutableStateFlow("")
     val output: StateFlow<String> = _output.asStateFlow()
 
+    /** 标准输入：运行前在这里填写，喂给程序的 input()/scanf。 */
+    private val _stdin = MutableStateFlow("")
+    val stdin: StateFlow<String> = _stdin.asStateFlow()
+
     private val _isRunning = MutableStateFlow(false)
     val isRunning: StateFlow<Boolean> = _isRunning.asStateFlow()
 
@@ -76,10 +80,15 @@ class EditorViewModel : ViewModel() {
         _code.value = text
     }
 
+    fun updateStdin(text: String) {
+        _stdin.value = text
+    }
+
     fun run() {
         if (_isRunning.value) return
         val backend = backends.backendFor(_language.value)
         val code = _code.value
+        val stdin = _stdin.value
         _output.value = ""
         _lastResult.value = null
         _isRunning.value = true
@@ -94,7 +103,7 @@ class EditorViewModel : ViewModel() {
                 }
             }
             try {
-                val result = backend.run(code)
+                val result = backend.run(code, stdin)
                 _lastResult.value = result
                 _output.value = _output.value +
                     "\n—— 退出码 ${result.exitCode} · 耗时 ${result.durationMs}ms ——\n"

@@ -26,7 +26,7 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
         // 无持久状态；Python 解释器本身由 Chaquopy 托管
     }
 
-    override suspend fun run(code: String): RunResult = withContext(Dispatchers.IO) {
+    override suspend fun run(code: String, stdin: String): RunResult = withContext(Dispatchers.IO) {
         val start = System.currentTimeMillis()
         var exit: Int
         var out: String
@@ -34,7 +34,7 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
         try {
             val py = Python.getInstance()
             val runner = py.getModule("ide_runner")
-            val res = runner.callAttr("run_user", code, sandbox.sitePackages.absolutePath)
+            val res = runner.callAttr("run_user", code, sandbox.sitePackages.absolutePath, stdin)
             val list = res.asList()
             exit = list[0].toInt()
             out = list[1].toString()

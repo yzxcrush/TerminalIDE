@@ -16,19 +16,22 @@ def ensure_sandbox_path(site_packages):
         sys.path.insert(0, site_packages)
 
 
-def run_user(code, site_packages=None):
+def run_user(code, site_packages=None, stdin_text=""):
     """Execute user code and return (exit_code, stdout, stderr).
 
     sys.stdout/stderr are swapped to StringIO and restored afterwards, so the
     surrounding app is unaffected and we capture every `print` / traceback.
+    `sys.stdin` is swapped to a StringIO fed by [stdin_text] so that `input()`
+    reads the lines the user typed in the editor's stdin box.
     """
     ensure_sandbox_path(site_packages)
 
     globals_dict = {"__name__": "__main__", "__builtins__": __builtins__}
     out = io.StringIO()
     err = io.StringIO()
-    old_out, old_err = sys.stdout, sys.stderr
+    old_out, old_err, old_in = sys.stdout, sys.stderr, sys.stdin
     sys.stdout, sys.stderr = out, err
+    sys.stdin = io.StringIO(stdin_text or "")
 
     exit_code = 0
     try:
@@ -39,7 +42,7 @@ def run_user(code, site_packages=None):
         exit_code = 1
         traceback.print_exc(file=err)
     finally:
-        sys.stdout, sys.stderr = old_out, old_err
+        sys.stdout, sys.stderr, sys.stdin = old_out, old_err, old_in
 
     return exit_code, out.getvalue(), err.getvalue()
 

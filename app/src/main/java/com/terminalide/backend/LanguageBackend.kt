@@ -22,7 +22,7 @@ interface LanguageBackend {
     val language: Language
 
     /** 运行源码：Python 解释执行；C/C++ 为「写沙箱 → 编译 → 运行」。 */
-    suspend fun run(code: String): RunResult
+    suspend fun run(code: String, stdin: String = ""): RunResult
 
     /** 输出流。 */
     val output: SharedFlow<OutputChunk>

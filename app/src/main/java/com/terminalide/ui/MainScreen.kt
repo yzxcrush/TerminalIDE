@@ -83,6 +83,7 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
     val language by editorVm.language.collectAsStateWithLifecycle()
     val code by editorVm.code.collectAsStateWithLifecycle()
     val output by editorVm.output.collectAsStateWithLifecycle()
+    val stdin by editorVm.stdin.collectAsStateWithLifecycle()
     val isRunning by editorVm.isRunning.collectAsStateWithLifecycle()
     val files by editorVm.files.collectAsStateWithLifecycle()
 
@@ -222,6 +223,8 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                     OutputPanel(
                         output = output,
                         isRunning = isRunning,
+                        stdin = stdin,
+                        onStdinChange = editorVm::updateStdin,
                         onStop = editorVm::stop,
                         onClear = editorVm::clearOutput,
                         modifier = Modifier.weight(0.4f).fillMaxWidth(),
