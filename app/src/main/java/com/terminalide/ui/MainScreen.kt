@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.terminalide.core.Language
 import com.terminalide.ui.components.AiSidebar
@@ -125,14 +126,23 @@ fun MainScreen(editorVm: EditorViewModel, packageVm: PackageViewModel, aiVm: AiV
                                         tint = MaterialTheme.colorScheme.onPrimary,
                                     )
                                 }
-                                Text(
-                                    "Terminal IDE",
-                                    modifier = Modifier.weight(1f),
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    textAlign = TextAlign.Center,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                )
+                                Column(
+                                    Modifier.weight(1f),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ) {
+                                    Text(
+                                        "Terminal IDE",
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                    )
+                                    Text(
+                                        "@惜白 出品",
+                                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.72f),
+                                        fontSize = 10.sp,
+                                    )
+                                }
                                 IconButton(onClick = { showSettings = true }) {
                                     Icon(
                                         Icons.Filled.Settings,

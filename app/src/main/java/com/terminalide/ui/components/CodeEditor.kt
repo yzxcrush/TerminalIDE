@@ -29,9 +29,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
@@ -180,6 +182,16 @@ fun CodeEditor(
                     },
                 )
             }
+            // 右下角水印
+            Text(
+                "@惜白",
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 10.dp, bottom = 6.dp),
+                color = Color.White.copy(alpha = 0.16f),
+                fontSize = 11.sp,
+                fontStyle = FontStyle.Italic,
+            )
         }
         CodeKeyboardBar(onInsert = ::insertAtCursor)
     }
