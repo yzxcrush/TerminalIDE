@@ -1,0 +1,33 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 蓝色圆形背景 -->
+    <path
+        android:fillColor="#4D6BFE"
+        android:pathData="M54,54m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0" />
+    <!-- 鲸鱼身体 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,54 C34,44 43,39 54,39 C66,39 75,44 75,53 C75,61 73,66 68,69 C61,72 46,72 40,69 C35,66 34,61 34,54 Z" />
+    <!-- 尾鳍 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M73,49 L88,41 L85,54 L88,67 L73,59 Z" />
+    <!-- 腹鳍 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,66 L56,76 L64,68 Z" />
+    <!-- 眼睛 -->
+    <path
+        android:fillColor="#4D6BFE"
+        android:pathData="M45,50 m-2.6,0 a2.6,2.6 0 1,1 5.2,0 a2.6,2.6 0 1,1 -5.2,0" />
+    <!-- 微笑 -->
+    <path
+        android:strokeColor="#4D6BFE"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M43,57 Q47,61 51,57" />
+</vector>
