@@ -15,7 +15,8 @@ import java.util.concurrent.TimeUnit
  * 安装后位于 nativeLibraryDir（唯一允许执行二进制的目录），运行期直接执行；
  * GGUF 模型运行期下载到 files/models。
  *
- * 推理通过子进程执行：`<runner> -m <model> -p "<prompt>" -no-cnv ...`，完全离线。
+ * 采用 llama.cpp 单轮对话模式（-st），由引擎套用模型自带的 chat 模板，
+ * 回复质量远好于手拼 prompt。输出会剥离 R1 的 <think>…</think> 推理块。
  */
 class LocalModelBackend(
     private val context: Context,
@@ -40,26 +41,31 @@ class LocalModelBackend(
         }
         if (!File(model).exists()) throw IllegalStateException("模型文件不存在：$model")
 
-        val prompt = buildPrompt(history)
+        val system = history.firstOrNull { it.role == AiMessage.Role.SYSTEM }?.content.orEmpty()
+        val userPrompt = buildUserPrompt(history)
         val threads = Runtime.getRuntime().availableProcessors().coerceIn(2, 8)
-        val cmd = listOf(
-            runner.absolutePath,
-            "-m", model,
-            "-p", prompt,
-            "-n", "512",
-            "--temp", "0.3",
-            "-c", "4096",
-            "-no-cnv",
-            "--log-disable",
-            "--no-display-prompt",
-            "--simple-io",
-            "-t", threads.toString(),
+
+        val cmd = mutableListOf(runner.absolutePath, "-m", model)
+        if (system.isNotBlank()) {
+            cmd.add("-sys")
+            cmd.add(system)
+        }
+        cmd.addAll(
+            listOf(
+                "-st",
+                "--no-display-prompt",
+                "-p", userPrompt,
+                "-n", "1024",
+                "--temp", "0.3",
+                "-c", "4096",
+                "-t", threads.toString(),
+            )
         )
         val result = runProcess(cmd)
         if (result.exitCode != 0) {
             throw IllegalStateException("本地推理失败：${result.mergedOutput().take(500)}")
         }
-        result.stdout.trim()
+        cleanReply(result.stdout)
     }
 
     override suspend fun probe(): ProbeResult {
@@ -77,16 +83,19 @@ class LocalModelBackend(
             .map { File(nativeDir, it) }
             .firstOrNull { it.exists() && it.canExecute() }
 
-    /** 把对话历史拼成 llama.cpp 风格的 prompt（含系统/用户/助手标记）。 */
-    private fun buildPrompt(history: List<AiMessage>): String = buildString {
-        history.forEach { m ->
-            when (m.role) {
-                AiMessage.Role.SYSTEM -> append("系统：").append(m.content).append('\n')
-                AiMessage.Role.USER -> append("用户：").append(m.content).append('\n')
-                AiMessage.Role.ASSISTANT -> append("助手：").append(m.content).append('\n')
-            }
+    /** 把除系统消息外的对话历史拼成一段供 -p 使用的文本。 */
+    private fun buildUserPrompt(history: List<AiMessage>): String = buildString {
+        history.filter { it.role != AiMessage.Role.SYSTEM }.forEach { m ->
+            append(if (m.role == AiMessage.Role.USER) "用户：" else "助手：")
+            append(m.content).append('\n')
         }
         append("助手：")
+    }
+
+    /** 去掉 R1 的 <think>…</think> 推理块，只保留最终回答。 */
+    private fun cleanReply(raw: String): String {
+        val noThink = raw.replace(Regex("<think>[\\s\\S]*?</think>"), "").trim()
+        return noThink.ifBlank { raw.trim() }
     }
 
     private fun runProcess(cmd: List<String>): RunResult {
@@ -95,7 +104,6 @@ class LocalModelBackend(
         pb.directory(modelsDir)
         pb.environment()["LD_LIBRARY_PATH"] = nativeDir.absolutePath
         val proc = pb.redirectErrorStream(false).start()
-        // 并发读取 stdout/stderr，避免管道缓冲写满导致死锁
         val stdout = StringBuilder()
         val stderr = StringBuilder()
         val tOut = Thread { proc.inputStream.bufferedReader().forEachLine { stdout.append(it).append('\n') } }.apply { start() }
