@@ -171,6 +171,21 @@ class EditorViewModel : ViewModel() {
                 if (_hasError.value) {
                     com.terminalide.core.ErrorKnowledge.hintFor(_output.value)?.let { appendOutput(it) }
                 }
+                // 变量检查器：运行后列出所有变量
+                if (backend is com.terminalide.backend.PythonBackend) {
+                    runCatching {
+                        val json = backend.lastVarsJson() ?: return@runCatching
+                        val arr = org.json.JSONArray(json)
+                        if (arr.length() > 0) {
+                            val sb = StringBuilder("\n—— 变量 ——\n")
+                            for (i in 0 until arr.length()) {
+                                val o = arr.getJSONObject(i)
+                                sb.append(o.getString("name")).append(" = ").append(o.getString("value")).append('\n')
+                            }
+                            appendOutput(sb.toString())
+                        }
+                    }
+                }
                 // 长脚本运行完成 → 通知栏提醒
                 if (result.durationMs >= com.terminalide.core.NotificationHelper.MIN_DURATION_MS) {
                     com.terminalide.core.NotificationHelper.notifyRunDone(

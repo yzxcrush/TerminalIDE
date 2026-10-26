@@ -57,6 +57,7 @@ class AiViewModel : ViewModel() {
 
     init {
         refreshReady()
+        loadMessages()
     }
 
     // ---- 后端切换 ----
@@ -83,6 +84,38 @@ class AiViewModel : ViewModel() {
 
     fun clearMessages() {
         _messages.value = emptyList()
+        persistMessages()
+    }
+
+    // ---- 对话持久化（重启后保留聊天记录）----
+
+    private fun persistMessages() {
+        runCatching {
+            val json = org.json.JSONArray()
+            _messages.value.forEach {
+                json.put(org.json.JSONObject().put("role", it.role.name).put("content", it.content))
+            }
+            TerminalIdeApp.instance
+                .getSharedPreferences("ai_chat", android.content.Context.MODE_PRIVATE)
+                .edit().putString("messages", json.toString()).apply()
+        }
+    }
+
+    private fun loadMessages() {
+        runCatching {
+            val raw = TerminalIdeApp.instance
+                .getSharedPreferences("ai_chat", android.content.Context.MODE_PRIVATE)
+                .getString("messages", null) ?: return
+            val json = org.json.JSONArray(raw)
+            val list = mutableListOf<AiMessage>()
+            for (i in 0 until json.length()) {
+                val o = json.getJSONObject(i)
+                val role = AiMessage.Role.valueOf(o.getString("role"))
+                val content = o.getString("content")
+                if (content.isNotEmpty()) list.add(AiMessage(role, content))
+            }
+            if (list.isNotEmpty()) _messages.value = list
+        }
     }
 
     fun send(currentLanguage: Language, currentCode: String) {
@@ -146,6 +179,7 @@ class AiViewModel : ViewModel() {
             } finally {
                 updateLastAssistant(acc.toString())
                 _isThinking.value = false
+                persistMessages()
             }
         }
     }

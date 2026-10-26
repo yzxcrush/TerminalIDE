@@ -115,6 +115,10 @@ def run_user(code, site_packages=None, stdin_text="", bridge=None, workspace=Non
         traceback.print_exc(file=sys.stderr)
     finally:
         sys.settrace(old_trace)
+        try:
+            _snapshot_vars(globals_dict)
+        except Exception:
+            pass
         sys.stdout, sys.stderr, sys.stdin = old_out, old_err, old_in
 
     if out is not None:
@@ -128,6 +132,30 @@ def _system_exit_code(exc):
     if isinstance(exc.code, int):
         return exc.code
     return 1
+
+
+# ==================== 变量快照 ====================
+_LAST_VARS = {"json": "[]"}
+
+
+def _snapshot_vars(ns):
+    """记录运行后的变量（只保留可序列化的简单类型），供「变量检查器」展示。"""
+    import json as _json
+    out = []
+    for k, v in ns.items():
+        if k.startswith("__") or callable(v) or getattr(v, "__module__", None) not in (None, "builtins"):
+            continue
+        if isinstance(v, (int, float, bool, str, list, dict, tuple, set)):
+            try:
+                out.append({"name": k, "value": repr(v)[:200]})
+            except Exception:
+                pass
+    _LAST_VARS["json"] = _json.dumps(out, ensure_ascii=False)
+
+
+def get_last_vars():
+    """返回上次运行的变量列表（JSON 字符串）。"""
+    return _LAST_VARS["json"]
 
 
 # ==================== 中断支持 ====================

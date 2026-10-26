@@ -80,6 +80,11 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
         bridge?.closed = true
     }
 
+    /** 上次运行的变量快照（JSON 数组字符串）。 */
+    fun lastVarsJson(): String? = runCatching {
+        Python.getInstance().getModule("ide_runner").callAttr("get_last_vars").toString()
+    }.getOrNull()
+
     override fun abort() {
         runCatching {
             Python.getInstance().getModule("ide_runner").callAttr("abort_exec")

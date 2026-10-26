@@ -30,6 +30,10 @@ class TerminalViewModel : ViewModel() {
     private val _running = MutableStateFlow(false)
     val running: StateFlow<Boolean> = _running.asStateFlow()
 
+    /** 命令历史（↑/↓ 翻阅）。 */
+    private val history = mutableListOf<String>()
+    private var historyIndex = -1
+
     fun start() {
         if (process != null) return
         val p = try {
@@ -52,7 +56,7 @@ class TerminalViewModel : ViewModel() {
         readerJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 p.inputStream.bufferedReader().forEachLine { line ->
-                    appendOutput(line + "\n")
+                    appendOutput(stripAnsi(line) + "\n")
                 }
             } catch (_: Throwable) {
             }
@@ -66,6 +70,8 @@ class TerminalViewModel : ViewModel() {
             start()
             return
         }
+        history.add(cmd)
+        historyIndex = history.size
         appendOutput("$ " + cmd + "\n")
         runCatching {
             p.outputStream.write((cmd + "\n").toByteArray())
@@ -85,6 +91,20 @@ class TerminalViewModel : ViewModel() {
         _output.value = ""
     }
 
+    /** 上一条历史命令。 */
+    fun historyUp(): String {
+        if (history.isEmpty()) return ""
+        historyIndex = (historyIndex - 1).coerceIn(0, history.size - 1)
+        return history[historyIndex]
+    }
+
+    /** 下一条历史命令。 */
+    fun historyDown(): String {
+        if (history.isEmpty()) return ""
+        historyIndex = (historyIndex + 1).coerceIn(0, history.size)
+        return history.getOrNull(historyIndex) ?: ""
+    }
+
     private fun appendOutput(text: String) {
         val cur = _output.value + text
         _output.value = if (cur.length > MAX_OUTPUT) cur.takeLast(MAX_OUTPUT) else cur
@@ -96,5 +116,9 @@ class TerminalViewModel : ViewModel() {
 
     private companion object {
         const val MAX_OUTPUT = 200_000
+        /** 匹配 ANSI 转义序列（颜色/光标控制），避免终端里出现乱码。 */
+        val ANSI_REGEX = Regex("\u001B\\[[0-9;?]*[a-zA-Z]|\u001B\\][^\u0007]*\u0007")
+
+        fun stripAnsi(line: String): String = ANSI_REGEX.replace(line, "")
     }
 }

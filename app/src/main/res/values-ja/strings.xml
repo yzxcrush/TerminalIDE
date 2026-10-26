@@ -91,4 +91,5 @@
     <string name="editor_no_match">一致なし</string>
     <string name="terminal_title">ターミナル</string>
     <string name="terminal_input_hint">コマンドを入力して Enter で実行</string>
+    <string name="action_export_zip">プロジェクトを書き出す (zip)</string>
 </resources>

@@ -1,5 +1,8 @@
 package com.terminalide.ui.components
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -106,6 +109,18 @@ fun TerminalSheet(termVm: TerminalViewModel) {
                     }
                 }),
             )
+            IconButton(
+                onClick = { input = termVm.historyUp() },
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(Icons.Filled.KeyboardArrowUp, contentDescription = "上一条")
+            }
+            IconButton(
+                onClick = { input = termVm.historyDown() },
+                modifier = Modifier.size(32.dp),
+            ) {
+                Icon(Icons.Filled.KeyboardArrowDown, contentDescription = "下一条")
+            }
             IconButton(onClick = {
                 termVm.start()
                 if (input.isNotBlank()) {

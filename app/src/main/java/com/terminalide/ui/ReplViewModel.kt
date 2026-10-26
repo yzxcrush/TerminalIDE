@@ -34,7 +34,8 @@ class ReplViewModel : ViewModel() {
         _output.value = _output.value + "\n>>> " + text + "\n"
         viewModelScope.launch {
             val result = backend?.replExec(text) ?: "（Python 后端不可用）\n"
-            _output.value = _output.value + result
+            val cur = _output.value + result
+            _output.value = if (cur.length > MAX_REPL_CHARS) cur.takeLast(MAX_REPL_CHARS) else cur
             _busy.value = false
         }
     }
