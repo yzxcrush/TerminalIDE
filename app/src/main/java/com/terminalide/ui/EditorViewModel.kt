@@ -82,6 +82,8 @@ class EditorViewModel : ViewModel() {
         _code.value = codeByLang[lang] ?: lang.template
         _output.value = ""
         _lastResult.value = null
+        _currentFile.value = null
+        _hasError.value = false
     }
 
     private var autoSaveJob: Job? = null
@@ -139,6 +141,7 @@ class EditorViewModel : ViewModel() {
         codeByLang[lang] = text
         _output.value = ""
         _lastResult.value = null
+        _currentFile.value = null
     }
 
     fun run() {
@@ -260,6 +263,7 @@ class EditorViewModel : ViewModel() {
             val file = File(dir, name.ifBlank { "main.${_language.value.fileExtension}" })
             file.writeText(_language.value.template)
             _code.value = file.readText()
+            _currentFile.value = file.absolutePath
             refreshFiles()
         }
     }

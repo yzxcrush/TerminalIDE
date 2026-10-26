@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.terminalide.TerminalIdeApp
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +20,6 @@ class TerminalViewModel : ViewModel() {
 
     private val app get() = TerminalIdeApp.instance
     private var process: Process? = null
-    private var readerJob: Job? = null
     private var cwd: File = app.sandbox.workspace
 
     private val _output = MutableStateFlow("")
@@ -36,30 +34,33 @@ class TerminalViewModel : ViewModel() {
 
     fun start() {
         if (process != null) return
-        val p = try {
-            ProcessBuilder("/system/bin/sh")
-                .directory(cwd)
-                .redirectErrorStream(true)
-                .apply {
-                    environment()["PATH"] = "/system/bin:/system/xbin:/vendor/bin:/sbin"
-                }
-                .start()
-        } catch (t: Throwable) {
-            appendOutput("启动终端失败：${t.message ?: t}\n")
-            return
-        }
-        process = p
-        _running.value = true
-        appendOutput("Terminal IDE 终端（系统 sh）\n")
-        appendOutput("工作目录：${cwd.absolutePath}\n")
-        appendOutput("支持 ls / cd / cat / echo / grep / ps 等常用命令\n\n")
-        readerJob = viewModelScope.launch(Dispatchers.IO) {
+        // 进程启动是阻塞操作，放到 IO 线程，避免卡主线程
+        viewModelScope.launch(Dispatchers.IO) {
+            val p = try {
+                ProcessBuilder("/system/bin/sh")
+                    .directory(cwd)
+                    .redirectErrorStream(true)
+                    .apply {
+                        environment()["PATH"] = "/system/bin:/system/xbin:/vendor/bin:/sbin"
+                    }
+                    .start()
+            } catch (t: Throwable) {
+                appendOutput("启动终端失败：${t.message ?: t}\n")
+                return@launch
+            }
+            process = p
+            _running.value = true
+            appendOutput("Terminal IDE 终端（系统 sh）\n")
+            appendOutput("工作目录：${cwd.absolutePath}\n")
+            appendOutput("支持 ls / cd / cat / echo / grep / ps 等常用命令\n\n")
             try {
                 p.inputStream.bufferedReader().forEachLine { line ->
                     appendOutput(stripAnsi(line) + "\n")
                 }
             } catch (_: Throwable) {
             }
+            // shell 退出（如输入 exit）后重置，允许再次启动
+            if (process === p) process = null
             _running.value = false
         }
     }
@@ -73,15 +74,15 @@ class TerminalViewModel : ViewModel() {
         history.add(cmd)
         historyIndex = history.size
         appendOutput("$ " + cmd + "\n")
-        runCatching {
-            p.outputStream.write((cmd + "\n").toByteArray())
-            p.outputStream.flush()
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                p.outputStream.write((cmd + "\n").toByteArray())
+                p.outputStream.flush()
+            }
         }
     }
 
     fun stop() {
-        readerJob?.cancel()
-        readerJob = null
         runCatching { process?.destroy() }
         process = null
         _running.value = false
