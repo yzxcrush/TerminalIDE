@@ -1,5 +1,7 @@
 package com.terminalide.ui
 
+import com.terminalide.ui.theme.AppBackgroundBrush
+import androidx.compose.foundation.border
 import com.terminalide.ui.components.DiffDialog
 import com.terminalide.core.ShareHelper
 import androidx.compose.ui.platform.LocalContext
@@ -130,8 +132,13 @@ fun MainScreen(
             }
         },
     ) {
-        Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(AppBackgroundBrush)
+        ) {
             Scaffold(
+                containerColor = Color.Transparent,
                 topBar = {
                     Column(Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
                         // 渐变顶栏（底部圆角）
@@ -140,6 +147,16 @@ fun MainScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
                                 .background(Brush.horizontalGradient(TopBarGradient))
+                                .border(
+                                    width = 1.dp,
+                                    brush = Brush.verticalGradient(
+                                        listOf(
+                                            Color.White.copy(alpha = 0.22f),
+                                            Color.White.copy(alpha = 0.02f),
+                                        )
+                                    ),
+                                    shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
+                                )
                         ) {
                             Row(
                                 Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 2.dp),
@@ -256,8 +273,8 @@ fun MainScreen(
                             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         }
                         NavigationBar(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            tonalElevation = 8.dp,
+                            containerColor = Color(0xFF101827).copy(alpha = 0.96f),
+                            tonalElevation = 0.dp,
                         ) {
                         NavigationBarItem(
                             selected = false,

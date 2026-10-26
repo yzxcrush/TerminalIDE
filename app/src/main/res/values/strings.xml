@@ -81,4 +81,12 @@
     <string name="diff_title">AI 修复预览</string>
     <string name="diff_removed">删除</string>
     <string name="diff_added">新增</string>
+    <string name="editor_undo">撤销</string>
+    <string name="editor_redo">重做</string>
+    <string name="editor_search">查找</string>
+    <string name="editor_find_hint">查找内容</string>
+    <string name="editor_replace_hint">替换为</string>
+    <string name="editor_replace">替换</string>
+    <string name="editor_replace_all">全部替换</string>
+    <string name="editor_no_match">无匹配</string>
 </resources>

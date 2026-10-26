@@ -81,4 +81,12 @@
     <string name="diff_title">AI 修復預覽</string>
     <string name="diff_removed">刪除</string>
     <string name="diff_added">新增</string>
+    <string name="editor_undo">復原</string>
+    <string name="editor_redo">重做</string>
+    <string name="editor_search">尋找</string>
+    <string name="editor_find_hint">尋找內容</string>
+    <string name="editor_replace_hint">取代為</string>
+    <string name="editor_replace">取代</string>
+    <string name="editor_replace_all">全部取代</string>
+    <string name="editor_no_match">無符合</string>
 </resources>

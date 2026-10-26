@@ -81,4 +81,12 @@
     <string name="diff_title">AI 修正プレビュー</string>
     <string name="diff_removed">削除</string>
     <string name="diff_added">追加</string>
+    <string name="editor_undo">元に戻す</string>
+    <string name="editor_redo">やり直す</string>
+    <string name="editor_search">検索</string>
+    <string name="editor_find_hint">検索文字列</string>
+    <string name="editor_replace_hint">置換後</string>
+    <string name="editor_replace">置換</string>
+    <string name="editor_replace_all">すべて置換</string>
+    <string name="editor_no_match">一致なし</string>
 </resources>

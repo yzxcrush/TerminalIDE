@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.ui.graphics.Color
 import com.terminalide.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -46,7 +47,7 @@ fun ConsoleInputBar(
     Row(
         modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color(0xFF121A28).copy(alpha = 0.95f))
             .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

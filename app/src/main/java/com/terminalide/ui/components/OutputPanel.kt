@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.ui.graphics.Color
 import com.terminalide.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
@@ -65,7 +66,7 @@ fun OutputPanel(
     Column(
         modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(Color(0xFF0F1621).copy(alpha = 0.88f))
     ) {
         Row(
             Modifier
