@@ -98,7 +98,7 @@
     <string name="onboarding_title_1">Welcome to Terminal IDE</string>
     <string name="onboarding_body_1">Write Python on your phone. CPython 3.13 built in — no setup needed.</string>
     <string name="onboarding_title_2">Write code, tap Run</string>
-    <string name="onboarding_body_2">Syntax highlight, symbol bar, find & replace, undo/redo, auto-save.</string>
+    <string name="onboarding_body_2">Syntax highlight, symbol bar, find &amp; replace, undo/redo, auto-save.</string>
     <string name="onboarding_title_3">AI assistant</string>
     <string name="onboarding_body_3">Local offline model or DeepSeek API. On error, tap 'AI analyze error' and review the diff before applying.</string>
     <string name="onboarding_title_4">Terminal · REPL · Examples</string>
