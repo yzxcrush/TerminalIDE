@@ -47,7 +47,7 @@ fun ConsoleInputBar(
     Row(
         modifier
             .fillMaxWidth()
-            .background(Color(0xFF121A28).copy(alpha = 0.95f))
+            .background(Color(0xFF121A28).copy(alpha = 0.82f))
             .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

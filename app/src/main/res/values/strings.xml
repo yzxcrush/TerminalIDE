@@ -89,4 +89,6 @@
     <string name="editor_replace">替换</string>
     <string name="editor_replace_all">全部替换</string>
     <string name="editor_no_match">无匹配</string>
+    <string name="terminal_title">终端</string>
+    <string name="terminal_input_hint">输入命令，回车执行</string>
 </resources>

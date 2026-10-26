@@ -89,4 +89,6 @@
     <string name="editor_replace">取代</string>
     <string name="editor_replace_all">全部取代</string>
     <string name="editor_no_match">無符合</string>
+    <string name="terminal_title">終端</string>
+    <string name="terminal_input_hint">輸入指令，按 Enter 執行</string>
 </resources>

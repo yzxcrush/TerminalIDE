@@ -1,5 +1,7 @@
 package com.terminalide.ui
 
+import com.terminalide.ui.components.TerminalSheet
+import androidx.compose.material.icons.filled.Terminal
 import com.terminalide.ui.theme.AppBackgroundBrush
 import androidx.compose.foundation.border
 import com.terminalide.ui.components.DiffDialog
@@ -97,6 +99,7 @@ fun MainScreen(
     packageVm: PackageViewModel,
     aiVm: AiViewModel,
     replVm: ReplViewModel,
+    termVm: TerminalViewModel,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -106,6 +109,7 @@ fun MainScreen(
     var showSettings by remember { mutableStateOf(false) }
     var showRepl by remember { mutableStateOf(false) }
     var pendingFix by remember { mutableStateOf<String?>(null) }
+    var showTerminal by remember { mutableStateOf(false) }
 
     val language by editorVm.language.collectAsStateWithLifecycle()
     val code by editorVm.code.collectAsStateWithLifecycle()
@@ -274,7 +278,7 @@ fun MainScreen(
                             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
                         }
                         NavigationBar(
-                            containerColor = Color(0xFF101827).copy(alpha = 0.96f),
+                            containerColor = Color(0xFF101827).copy(alpha = 0.85f),
                             tonalElevation = 0.dp,
                         ) {
                         NavigationBarItem(
@@ -305,6 +309,12 @@ fun MainScreen(
                             onClick = { showRepl = true },
                             icon = { Icon(Icons.Filled.Code, contentDescription = stringResource(R.string.action_repl)) },
                             label = { Text(stringResource(R.string.action_repl)) },
+                        )
+                        NavigationBarItem(
+                            selected = false,
+                            onClick = { showTerminal = true },
+                            icon = { Icon(Icons.Filled.Terminal, contentDescription = stringResource(R.string.terminal_title)) },
+                            label = { Text(stringResource(R.string.terminal_title)) },
                         )
                         }
                     }
@@ -425,6 +435,15 @@ fun MainScreen(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             ReplSheet(replVm)
+        }
+    }
+
+    if (showTerminal) {
+        ModalBottomSheet(
+            onDismissRequest = { showTerminal = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            TerminalSheet(termVm)
         }
     }
 

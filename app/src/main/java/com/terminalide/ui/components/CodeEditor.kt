@@ -419,9 +419,9 @@ private fun FindReplaceBar(
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
-            modifier = Modifier.fillMaxWidth().height(46.dp),
+            modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(stringResource(R.string.editor_find_hint), fontSize = 12.sp) },
-            textStyle = TextStyle(fontSize = 13.sp, fontFamily = FontFamily.Monospace),
+            textStyle = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, fontFamily = FontFamily.Monospace),
             singleLine = true,
             trailingIcon = {
                 IconButton(onClick = onClose, modifier = Modifier.size(30.dp)) {
@@ -434,9 +434,9 @@ private fun FindReplaceBar(
             OutlinedTextField(
                 value = replaceText,
                 onValueChange = onReplaceTextChange,
-                modifier = Modifier.weight(1f).height(42.dp),
+                modifier = Modifier.weight(1f),
                 placeholder = { Text(stringResource(R.string.editor_replace_hint), fontSize = 12.sp) },
-                textStyle = TextStyle(fontSize = 13.sp, fontFamily = FontFamily.Monospace),
+                textStyle = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, fontFamily = FontFamily.Monospace),
                 singleLine = true,
             )
             TextButton(onClick = onReplace, contentPadding = PaddingValues(horizontal = 6.dp)) {

@@ -66,7 +66,7 @@ fun OutputPanel(
     Column(
         modifier
             .fillMaxWidth()
-            .background(Color(0xFF0F1621).copy(alpha = 0.88f))
+            .background(Color(0xFF0F1621).copy(alpha = 0.72f))
     ) {
         Row(
             Modifier
@@ -116,13 +116,12 @@ fun OutputPanel(
                 onValueChange = onStdinChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .heightIn(min = 64.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 label = { Text(stringResource(R.string.console_prefill_label)) },
                 placeholder = { Text(stringResource(R.string.console_prefill_hint)) },
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                minLines = 2,
-                maxLines = 4,
+                minLines = 1,
+                maxLines = 5,
             )
             HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
         }

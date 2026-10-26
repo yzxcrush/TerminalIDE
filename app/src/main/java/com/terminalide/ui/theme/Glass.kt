@@ -20,7 +20,7 @@ val GlassBase = Color(0xFF101827)
 fun Modifier.glassSurface(
     shape: Shape = RoundedCornerShape(20.dp),
     base: Color = GlassBase,
-    alpha: Float = 0.72f,
+    alpha: Float = 0.55f,
 ): Modifier = this
     .clip(shape)
     .background(
