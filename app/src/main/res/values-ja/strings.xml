@@ -78,4 +78,7 @@
     <string name="action_share_file">ファイルとして共有</string>
     <string name="action_copy_code">コードをコピー</string>
     <string name="action_share">コードを共有</string>
+    <string name="diff_title">AI 修正プレビュー</string>
+    <string name="diff_removed">削除</string>
+    <string name="diff_added">追加</string>
 </resources>

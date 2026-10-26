@@ -78,4 +78,7 @@
     <string name="action_share_file">分享为文件</string>
     <string name="action_copy_code">复制代码</string>
     <string name="action_share">分享代码</string>
+    <string name="diff_title">AI 修复预览</string>
+    <string name="diff_removed">删除</string>
+    <string name="diff_added">新增</string>
 </resources>

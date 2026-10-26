@@ -167,6 +167,16 @@ class EditorViewModel : ViewModel() {
                 appendOutput("\n—— 退出码 ${result.exitCode} · 耗时 ${result.durationMs}ms ——\n")
                 _hasError.value = result.exitCode != 0 ||
                     _output.value.contains("Traceback (most recent call last)")
+                // 内置错误知识库：离线给「原因 + 怎么修」
+                if (_hasError.value) {
+                    com.terminalide.core.ErrorKnowledge.hintFor(_output.value)?.let { appendOutput(it) }
+                }
+                // 长脚本运行完成 → 通知栏提醒
+                if (result.durationMs >= com.terminalide.core.NotificationHelper.MIN_DURATION_MS) {
+                    com.terminalide.core.NotificationHelper.notifyRunDone(
+                        app, result.exitCode, result.durationMs,
+                    )
+                }
             } catch (t: kotlinx.coroutines.CancellationException) {
                 // 用户主动停止：静默退出，不打印协程取消异常
             } catch (t: Throwable) {

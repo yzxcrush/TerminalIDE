@@ -36,6 +36,7 @@ class TerminalIdeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        runCatching { com.terminalide.core.NotificationHelper.ensureChannel(this) }
         instance = this
         installCrashHandler()
         startupError = null

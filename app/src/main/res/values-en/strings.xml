@@ -78,4 +78,7 @@
     <string name="action_share_file">Share as file</string>
     <string name="action_copy_code">Copy code</string>
     <string name="action_share">Share code</string>
+    <string name="diff_title">AI fix preview</string>
+    <string name="diff_removed">Removed</string>
+    <string name="diff_added">Added</string>
 </resources>

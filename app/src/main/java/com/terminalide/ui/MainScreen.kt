@@ -1,5 +1,6 @@
 package com.terminalide.ui
 
+import com.terminalide.ui.components.DiffDialog
 import com.terminalide.core.ShareHelper
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.DropdownMenuItem
@@ -101,6 +102,7 @@ fun MainScreen(
     var showPackages by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
     var showRepl by remember { mutableStateOf(false) }
+    var pendingFix by remember { mutableStateOf<String?>(null) }
 
     val language by editorVm.language.collectAsStateWithLifecycle()
     val code by editorVm.code.collectAsStateWithLifecycle()
@@ -372,10 +374,7 @@ fun MainScreen(
                                 currentLanguage = language,
                                 currentCode = code,
                                 onInsertCode = { newCode -> editorVm.updateCode(newCode) },
-                                onApplyAndRun = { newCode ->
-                                    editorVm.updateCode(newCode)
-                                    editorVm.run()
-                                },
+                                onApplyAndRun = { newCode -> pendingFix = newCode },
                             )
                         }
                     }
@@ -409,5 +408,20 @@ fun MainScreen(
         ) {
             ReplSheet(replVm)
         }
+    }
+
+    // AI 修复前先看 diff，确认后再替换并重跑
+    val fix = pendingFix
+    if (fix != null) {
+        DiffDialog(
+            oldCode = code,
+            newCode = fix,
+            onApply = {
+                editorVm.updateCode(fix)
+                editorVm.run()
+                pendingFix = null
+            },
+            onDismiss = { pendingFix = null },
+        )
     }
 }
