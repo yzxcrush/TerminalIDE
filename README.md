@@ -9,6 +9,18 @@
 
 ---
 
+---
+
+## 📸 截图
+
+<p align="center">
+  <img src="docs/screenshots/01-ide.png" width="30%" />
+  <img src="docs/screenshots/02-variables.png" width="30%" />
+  <img src="docs/screenshots/04-terminal.png" width="30%" />
+</p>
+
+---
+
 ## ✨ 功能特性
 
 ### 🐍 Python 运行
