@@ -11,6 +11,7 @@ Batch mode (bridge == None):
 """
 
 import io
+import time
 import sys
 import traceback
 
@@ -180,6 +181,21 @@ def _trace(frame, event, arg):
     return _trace
 
 
+# REPL 超时支持
+_REPL_DEADLINE = {"t": 0}
+_REPL_COUNTER = [0]
+
+
+def _repl_trace(frame, event, arg):
+    if _ABORT["flag"]:
+        raise _UserAbort()
+    _REPL_COUNTER[0] += 1
+    # 每 1024 个事件检查一次时间，降低开销
+    if (_REPL_COUNTER[0] & 0x3FF) == 0 and time.time() > _REPL_DEADLINE["t"]:
+        raise _UserAbort()
+    return _repl_trace
+
+
 # ==================== REPL ====================
 # 持久命名空间：跨多次 repl_exec 保留变量/导入
 _REPL_NS = {"__name__": "__main__", "__builtins__": __builtins__}
@@ -194,6 +210,11 @@ def repl_exec(code):
     out = io.StringIO()
     old_out, old_err = sys.stdout, sys.stderr
     sys.stdout, sys.stderr = out, out
+    _ABORT["flag"] = False
+    # REPL 单次执行最多 60 秒，防止 while True 卡死运行时
+    _REPL_DEADLINE["t"] = time.time() + 60
+    old_trace = sys.gettrace()
+    sys.settrace(_repl_trace)
     try:
         try:
             value = eval(compile(code, "<repl>", "eval"), _REPL_NS)
@@ -201,11 +222,14 @@ def repl_exec(code):
                 print(repr(value))
         except SyntaxError:
             exec(compile(code, "<repl>", "exec"), _REPL_NS)
+    except _UserAbort:
+        print("[执行超时或已中断]")
     except SystemExit:
         print("[已退出]")
     except BaseException:
         traceback.print_exc()
     finally:
+        sys.settrace(old_trace)
         sys.stdout, sys.stderr = old_out, old_err
     return out.getvalue()
 

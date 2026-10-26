@@ -30,10 +30,10 @@ class DeepSeekBackend(
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 
-    /** 流式请求用：无读超时（SSE 长连接）。 */
+    /** 流式请求用：放宽读超时（SSE 长连接，但不能无限等）。 */
     private val streamHttp = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(0, TimeUnit.SECONDS)
+        .readTimeout(300, TimeUnit.SECONDS)
         .writeTimeout(60, TimeUnit.SECONDS)
         .build()
 

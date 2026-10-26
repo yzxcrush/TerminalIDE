@@ -227,22 +227,27 @@ class EditorViewModel : ViewModel() {
 
     fun save() {
         viewModelScope.launch(Dispatchers.IO) {
-            val file = _currentFile.value?.let { File(it) }
-                ?: File(
-                    sandbox.languageDir(_language.value.fileExtension),
-                    "main.${_language.value.fileExtension}"
-                )
-            file.parentFile?.mkdirs()
-            file.writeText(_code.value)
-            _currentFile.value = file.absolutePath
-            refreshFiles()
+            runCatching {
+                val file = _currentFile.value?.let { File(it) }
+                    ?: File(
+                        sandbox.languageDir(_language.value.fileExtension),
+                        "main.${_language.value.fileExtension}"
+                    )
+                file.parentFile?.mkdirs()
+                file.writeText(_code.value)
+                _currentFile.value = file.absolutePath
+                refreshFiles()
+            }.onFailure {
+                appendOutput("\n[保存失败] ${it.message ?: it}\n")
+            }
         }
     }
 
     fun loadFile(path: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
             val f = File(path)
-            if (!f.isFile) return@launch
+            if (!f.isFile) return@runCatching
             val text = f.readText()
             val lang = Language.entries.firstOrNull { it.fileExtension == f.extension }
             if (lang != null && lang != _language.value) {
@@ -254,17 +259,24 @@ class EditorViewModel : ViewModel() {
             _currentFile.value = path
             _output.value = ""
             _lastResult.value = null
+            }.onFailure {
+                appendOutput("\n[打开文件失败] ${it.message ?: it}\n")
+            }
         }
     }
 
     fun newFile(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val dir = sandbox.languageDir(_language.value.fileExtension)
-            val file = File(dir, name.ifBlank { "main.${_language.value.fileExtension}" })
-            file.writeText(_language.value.template)
-            _code.value = file.readText()
-            _currentFile.value = file.absolutePath
-            refreshFiles()
+            runCatching {
+                val dir = sandbox.languageDir(_language.value.fileExtension)
+                val file = File(dir, name.ifBlank { "main.${_language.value.fileExtension}" })
+                file.writeText(_language.value.template)
+                _code.value = file.readText()
+                _currentFile.value = file.absolutePath
+                refreshFiles()
+            }.onFailure {
+                appendOutput("\n[新建文件失败] ${it.message ?: it}\n")
+            }
         }
     }
 
