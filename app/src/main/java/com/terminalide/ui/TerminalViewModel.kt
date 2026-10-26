@@ -19,6 +19,7 @@ import java.io.File
 class TerminalViewModel : ViewModel() {
 
     private val app get() = TerminalIdeApp.instance
+    @Volatile
     private var process: Process? = null
     private var cwd: File = app.sandbox.workspace
 
@@ -32,8 +33,18 @@ class TerminalViewModel : ViewModel() {
     private val history = mutableListOf<String>()
     private var historyIndex = -1
 
+    /** 防止并发重复启动（点发送时 start() 会被调用多次）。 */
+    @Volatile
+    private var starting = false
+
+    /** 启动前积压的命令，shell 就绪后补发。 */
+    private val pendingCommands = java.util.concurrent.LinkedBlockingQueue<String>()
+
     fun start() {
-        if (process != null) return
+        synchronized(this) {
+            if (process != null || starting) return
+            starting = true
+        }
         // 进程启动是阻塞操作，放到 IO 线程，避免卡主线程
         viewModelScope.launch(Dispatchers.IO) {
             val p = try {
@@ -45,14 +56,24 @@ class TerminalViewModel : ViewModel() {
                     }
                     .start()
             } catch (t: Throwable) {
+                starting = false
                 appendOutput("启动终端失败：${t.message ?: t}\n")
                 return@launch
             }
             process = p
+            starting = false
             _running.value = true
             appendOutput("Terminal IDE 终端（系统 sh）\n")
             appendOutput("工作目录：${cwd.absolutePath}\n")
             appendOutput("支持 ls / cd / cat / echo / grep / ps 等常用命令\n\n")
+            // 补发启动前输入的命令
+            while (true) {
+                val queued = pendingCommands.poll() ?: break
+                runCatching {
+                    p.outputStream.write((queued + "\n").toByteArray())
+                    p.outputStream.flush()
+                }
+            }
             try {
                 p.inputStream.bufferedReader().forEachLine { line ->
                     appendOutput(stripAnsi(line) + "\n")
@@ -61,19 +82,22 @@ class TerminalViewModel : ViewModel() {
             }
             // shell 退出（如输入 exit）后重置，允许再次启动
             if (process === p) process = null
+            starting = false
             _running.value = false
         }
     }
 
     fun send(cmd: String) {
-        val p = process
-        if (p == null) {
-            start()
-            return
-        }
         history.add(cmd)
         historyIndex = history.size
         appendOutput("$ " + cmd + "\n")
+        val p = process
+        if (p == null) {
+            // 还没启动/刚退出：排队，等 shell 就绪后补发
+            pendingCommands.offer(cmd)
+            start()
+            return
+        }
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 p.outputStream.write((cmd + "\n").toByteArray())
@@ -83,6 +107,8 @@ class TerminalViewModel : ViewModel() {
     }
 
     fun stop() {
+        starting = false
+        pendingCommands.clear()
         runCatching { process?.destroy() }
         process = null
         _running.value = false
