@@ -139,7 +139,10 @@ fun MainScreen(
                     onNewFile = editorVm::newFile,
                     onDelete = editorVm::deleteFile,
                     onRename = editorVm::renameFile,
-                    onOpenExamples = { showExamples = true },
+                    onOpenExamples = {
+                        scope.launch { drawerState.close() }
+                        showExamples = true
+                    },
                 )
             }
         },
