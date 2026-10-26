@@ -44,4 +44,9 @@ class ReplViewModel : ViewModel() {
         _output.value = app.getString(R.string.repl_welcome) + "\n"
         viewModelScope.launch { backend?.replReset() }
     }
+
+    private companion object {
+        /** REPL 输出上限，超出丢弃最旧的，避免内存无限增长。 */
+        const val MAX_REPL_CHARS = 150_000
+    }
 }
