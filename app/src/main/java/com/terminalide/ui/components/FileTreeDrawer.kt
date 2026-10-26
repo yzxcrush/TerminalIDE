@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import com.terminalide.R
@@ -54,6 +55,7 @@ fun FileTreeDrawer(
     onNewFile: (String) -> Unit,
     onDelete: (String) -> Unit = {},
     onRename: (String, String) -> Unit = { _, _ -> },
+    onOpenExamples: () -> Unit = {},
 ) {
     var showNewDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
@@ -77,6 +79,9 @@ fun FileTreeDrawer(
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            IconButton(onClick = onOpenExamples) {
+                Icon(Icons.Filled.MenuBook, contentDescription = stringResource(R.string.examples_title))
+            }
             IconButton(onClick = onRefresh) {
                 Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh))
             }

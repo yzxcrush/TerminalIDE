@@ -1,5 +1,7 @@
 package com.terminalide.ui
 
+import com.terminalide.ui.components.OnboardingDialog
+import com.terminalide.ui.components.ExamplesSheet
 import com.terminalide.ui.components.TerminalSheet
 import androidx.compose.material.icons.filled.Terminal
 import com.terminalide.ui.theme.AppBackgroundBrush
@@ -110,6 +112,10 @@ fun MainScreen(
     var showRepl by remember { mutableStateOf(false) }
     var pendingFix by remember { mutableStateOf<String?>(null) }
     var showTerminal by remember { mutableStateOf(false) }
+    var showExamples by remember { mutableStateOf(false) }
+    var showOnboarding by remember {
+        mutableStateOf(!com.terminalide.TerminalIdeApp.instance.settings.onboardingSeen)
+    }
 
     val language by editorVm.language.collectAsStateWithLifecycle()
     val code by editorVm.code.collectAsStateWithLifecycle()
@@ -133,6 +139,7 @@ fun MainScreen(
                     onNewFile = editorVm::newFile,
                     onDelete = editorVm::deleteFile,
                     onRename = editorVm::renameFile,
+                    onOpenExamples = { showExamples = true },
                 )
             }
         },
@@ -436,6 +443,25 @@ fun MainScreen(
         ) {
             ReplSheet(replVm)
         }
+    }
+
+    if (showExamples) {
+        ModalBottomSheet(
+            onDismissRequest = { showExamples = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            ExamplesSheet(onPick = { example ->
+                editorVm.updateCode(example.code)
+                showExamples = false
+            })
+        }
+    }
+
+    if (showOnboarding) {
+        OnboardingDialog(onFinish = {
+            com.terminalide.TerminalIdeApp.instance.settings.onboardingSeen = true
+            showOnboarding = false
+        })
     }
 
     if (showTerminal) {

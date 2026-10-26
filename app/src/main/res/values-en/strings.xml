@@ -92,4 +92,20 @@
     <string name="terminal_title">Terminal</string>
     <string name="terminal_input_hint">Type a command, press Enter</string>
     <string name="action_export_zip">Export project (zip)</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_start">Get started</string>
+    <string name="onboarding_title_1">Welcome to Terminal IDE</string>
+    <string name="onboarding_body_1">Write Python on your phone. CPython 3.13 built in — no setup needed.</string>
+    <string name="onboarding_title_2">Write code, tap Run</string>
+    <string name="onboarding_body_2">Syntax highlight, symbol bar, find & replace, undo/redo, auto-save.</string>
+    <string name="onboarding_title_3">AI assistant</string>
+    <string name="onboarding_body_3">Local offline model or DeepSeek API. On error, tap 'AI analyze error' and review the diff before applying.</string>
+    <string name="onboarding_title_4">Terminal · REPL · Examples</string>
+    <string name="onboarding_body_4">Built-in system terminal and Python REPL; 16 ready-to-run practical examples.</string>
+    <string name="examples_title">Examples</string>
+    <string name="examples_hint">Tap an example to load it into the editor</string>
+    <string name="ai_generate">AI generate program</string>
+    <string name="ai_generate_hint">Describe the program you want, AI will write the full code</string>
+    <string name="action_generate">Generate</string>
 </resources>

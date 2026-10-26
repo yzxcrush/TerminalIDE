@@ -92,4 +92,20 @@
     <string name="terminal_title">ターミナル</string>
     <string name="terminal_input_hint">コマンドを入力して Enter で実行</string>
     <string name="action_export_zip">プロジェクトを書き出す (zip)</string>
+    <string name="onboarding_skip">スキップ</string>
+    <string name="onboarding_next">次へ</string>
+    <string name="onboarding_start">はじめる</string>
+    <string name="onboarding_title_1">Terminal IDE へようこそ</string>
+    <string name="onboarding_body_1">スマホで Python が書けます。CPython 3.13 内蔵、セットアップ不要。</string>
+    <string name="onboarding_title_2">書いて、実行</string>
+    <string name="onboarding_body_2">シンタックスハイライト、記号バー、検索置換、元に戻す/やり直し、自動保存。</string>
+    <string name="onboarding_title_3">AI アシスタント</string>
+    <string name="onboarding_body_3">ローカルモデルまたは DeepSeek API。エラー時は「AI で解析」→ 差分確認 → 自動修正。</string>
+    <string name="onboarding_title_4">ターミナル · REPL · サンプル</string>
+    <string name="onboarding_body_4">システムターミナルと Python REPL 内蔵。実用的なサンプル 16 個。</string>
+    <string name="examples_title">サンプル</string>
+    <string name="examples_hint">サンプルをタップするとエディタに読み込みます</string>
+    <string name="ai_generate">AI でプログラム生成</string>
+    <string name="ai_generate_hint">作りたいプログラムを説明すると、AI がコードを書きます</string>
+    <string name="action_generate">生成</string>
 </resources>

@@ -92,4 +92,20 @@
     <string name="terminal_title">終端</string>
     <string name="terminal_input_hint">輸入指令，按 Enter 執行</string>
     <string name="action_export_zip">匯出專案 (zip)</string>
+    <string name="onboarding_skip">跳過</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_start">開始使用</string>
+    <string name="onboarding_title_1">歡迎使用 Terminal IDE</string>
+    <string name="onboarding_body_1">手機上真的能寫 Python。內建 CPython 3.13，無需安裝任何環境。</string>
+    <string name="onboarding_title_2">寫程式 · 按執行</string>
+    <string name="onboarding_body_2">語法高亮、符號工具列、尋找取代、復原重做、自動儲存。</string>
+    <string name="onboarding_title_3">AI 助理幫你寫</string>
+    <string name="onboarding_body_3">本機離線模型或 DeepSeek API。發生錯誤時一鍵「AI 分析錯誤」，確認差異後自動修復。</string>
+    <string name="onboarding_title_4">終端 · REPL · 範例庫</string>
+    <string name="onboarding_body_4">內建系統終端與 Python REPL；範例庫有 16 個可一鍵執行的實用範例。</string>
+    <string name="examples_title">範例庫</string>
+    <string name="examples_hint">點一個範例即可載入編輯器</string>
+    <string name="ai_generate">AI 產生程式</string>
+    <string name="ai_generate_hint">描述你想要的程式，AI 會寫出完整可執行程式碼</string>
+    <string name="action_generate">產生</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.material3.AlertDialog
 import androidx.compose.ui.platform.LocalContext
 import com.terminalide.R
 import androidx.compose.ui.res.stringResource
@@ -88,6 +89,7 @@ fun AiSidebar(
 
     // 本地模型管理区默认收起，避免占满面板、挤压聊天区
     var showModelMgmt by remember { mutableStateOf(false) }
+    var showGenerate by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -278,6 +280,14 @@ fun AiSidebar(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             val ctx = LocalContext.current
+            OutlinedButton(
+                onClick = { showGenerate = true },
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                modifier = Modifier.height(30.dp),
+                enabled = ready && !isThinking,
+            ) {
+                Text("✨ " + stringResource(R.string.ai_generate), fontSize = 11.sp)
+            }
             listOf(
                 R.string.ai_quick_explain to "请解释当前编辑器里这段代码的作用，逐段说明，尽量简洁。",
                 R.string.ai_quick_fix to "请检查当前编辑器里这段代码的错误，并给出修复后的完整代码。",
@@ -335,6 +345,51 @@ fun AiSidebar(
                 style = MaterialTheme.typography.bodySmall,
             )
         }
+    }
+
+    // AI 生成程序对话框
+    if (showGenerate) {
+        var genPrompt by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showGenerate = false },
+            title = { Text(stringResource(R.string.ai_generate)) },
+            text = {
+                Column {
+                    Text(
+                        stringResource(R.string.ai_generate_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = genPrompt,
+                        onValueChange = { genPrompt = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("例如：批量给图片加水印") },
+                        minLines = 2,
+                        maxLines = 4,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (genPrompt.isNotBlank()) {
+                        aiVm.sendQuick(
+                            "生成程序",
+                            "请生成一个完整、可直接运行的 Python 程序：${genPrompt}。只输出一个 Python 代码块，不要多余解释。",
+                            currentLanguage,
+                            currentCode,
+                        )
+                    }
+                    showGenerate = false
+                }) { Text(stringResource(R.string.action_generate)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGenerate = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }
 

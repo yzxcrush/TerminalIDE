@@ -92,4 +92,20 @@
     <string name="terminal_title">终端</string>
     <string name="terminal_input_hint">输入命令，回车执行</string>
     <string name="action_export_zip">导出项目 (zip)</string>
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_start">开始使用</string>
+    <string name="onboarding_title_1">欢迎使用 Terminal IDE</string>
+    <string name="onboarding_body_1">手机上真的能写 Python。内置 CPython 3.13，无需安装任何环境。</string>
+    <string name="onboarding_title_2">写代码 · 点运行</string>
+    <string name="onboarding_body_2">语法高亮、符号工具条、查找替换、撤销重做、自动保存，写完点「运行」即可。</string>
+    <string name="onboarding_title_3">AI 助手帮你写</string>
+    <string name="onboarding_body_3">本地离线模型或 DeepSeek API。报错时一键「AI 分析报错」，看图确认后再自动修复。</string>
+    <string name="onboarding_title_4">终端 · REPL · 示例库</string>
+    <string name="onboarding_body_4">内置系统终端与 Python REPL；示例库有 16 个可一键运行的实用示例（爬虫/文件/数据）。</string>
+    <string name="examples_title">示例库</string>
+    <string name="examples_hint">点一个示例即可载入编辑器</string>
+    <string name="ai_generate">AI 生成程序</string>
+    <string name="ai_generate_hint">描述你想要的程序，AI 会写出完整可运行代码</string>
+    <string name="action_generate">生成</string>
 </resources>

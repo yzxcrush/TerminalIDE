@@ -39,12 +39,18 @@ class SettingsStore(context: Context) {
         get() = sp.getString(KEY_LANGUAGE, "system") ?: "system"
         set(v) = sp.edit().putString(KEY_LANGUAGE, v).apply()
 
+    /** 是否已看过首次导览页。 */
+    var onboardingSeen: Boolean
+        get() = sp.getBoolean(KEY_ONBOARDING, false)
+        set(v) = sp.edit().putBoolean(KEY_ONBOARDING, v).apply()
+
     companion object {
         const val KEY_MIRROR = "global_mirror"
         const val KEY_AI_BACKEND = "ai_backend_kind"
         const val KEY_MODEL_PATH = "local_model_path"
         const val KEY_API_BASE = "api_base_url"
         const val KEY_LANGUAGE = "app_language"
+        const val KEY_ONBOARDING = "onboarding_seen"
         const val DEFAULT_API_BASE = "https://api.deepseek.com"
     }
 }
