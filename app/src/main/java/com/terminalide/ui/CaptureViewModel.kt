@@ -218,7 +218,7 @@ class CaptureViewModel : ViewModel() {
             val r = runCatching { execRoot(script) }
             val out = r.getOrNull().orEmpty()
             val msg = when {
-                out.contains("CA_OK_") -> "✅ CA 已装到系统级（${'$'}out 个证书）\n重启相关 App 后生效；重启手机后需重装"
+                out.contains("CA_OK_") -> "✅ CA 已装到系统级（$(out.substringAfter("CA_OK_").trim()) 个证书）\n重启相关 App 后生效；重启手机后需重装"
                 out.contains("NO_SOURCE") -> "❌ 找不到可用的系统证书源"
                 out.contains("COPY_FAIL") -> "❌ 复制失败，已中止（未挂载，系统证书未被破坏）"
                 else -> "⚠️ 安装失败：${r.exceptionOrNull()?.message ?: out.take(200)}"

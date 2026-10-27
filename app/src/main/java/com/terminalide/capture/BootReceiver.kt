@@ -1,0 +1,24 @@
+package com.terminalide.capture
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+
+/**
+ * 开机自愈：如果系统代理还指着抓包端口但抓包服务没在跑，自动清掉，防止断网。
+ */
+class BootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        Thread {
+            runCatching {
+                val out = ProcessBuilder("su", "-c", "settings get global http_proxy")
+                    .start().apply { waitFor() }.inputStream.bufferedReader().readText().trim()
+                if (out.contains("8888") && !CaptureEngine.isRunning()) {
+                    ProcessBuilder("su", "-c", "settings put global http_proxy :0")
+                        .start().waitFor()
+                }
+            }
+        }.apply { isDaemon = true }.start()
+    }
+}

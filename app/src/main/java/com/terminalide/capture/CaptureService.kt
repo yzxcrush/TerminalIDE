@@ -42,11 +42,13 @@ class CaptureService : Service() {
 
     override fun onDestroy() {
         CaptureEngine.stop()
-        // 关键兜底：服务结束就把系统代理清掉
-        runCatching {
-            ProcessBuilder("su", "-c", "settings put global http_proxy :0").start()
-                .waitFor()
-        }
+        // 关键兜底：服务结束就把系统代理清掉（放子线程，避免阻塞主线程）
+        Thread {
+            runCatching {
+                ProcessBuilder("su", "-c", "settings put global http_proxy :0")
+                    .start().waitFor()
+            }
+        }.apply { isDaemon = true }.start()
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }

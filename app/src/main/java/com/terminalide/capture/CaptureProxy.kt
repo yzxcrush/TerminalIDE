@@ -75,7 +75,9 @@ class CaptureProxy(
                     val idx = afterHost.indexOf('/')
                     if (idx >= 0) afterHost.substring(idx) else "/"
                 }
-                relay(firstLine, path, input, output, host, port, "http")
+                // 转发时使用 origin-form（部分服务器不接受绝对 URI 形式）
+                val originLine = "${parts[0]} $path ${parts[2]}"
+                relay(originLine, path, input, output, host, port, "http")
             }
         }
     }
