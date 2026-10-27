@@ -128,4 +128,9 @@
     <string name="capture_filter_tip">ブラックリスト優先／サブドメイン対応</string>
     <string name="capture_pick_apps">アプリを選択してブラックリストへ</string>
     <string name="capture_no_apps">対象アプリが見つかりません</string>
+    <string name="capture_search_hint">URL / ホストを検索</string>
+    <string name="capture_group">グループ</string>
+    <string name="capture_edit_replay">編集して再送</string>
+    <string name="capture_ai_draft">AI 下書き</string>
+    <string name="capture_send">送信</string>
 </resources>

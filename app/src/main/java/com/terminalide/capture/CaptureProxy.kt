@@ -2,12 +2,15 @@ package com.terminalide.capture
 
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
+import java.util.zip.GZIPInputStream
+import java.util.zip.InflaterInputStream
 import javax.net.ssl.SSLSocket
 import javax.net.ssl.SSLSocketFactory
 
@@ -186,6 +189,10 @@ class CaptureProxy(
             val respChunked = headText.lineSequence()
                 .firstOrNull { it.lowercase().startsWith("transfer-encoding:") }
                 ?.lowercase()?.contains("chunked") == true
+            // 响应体编码（gzip/deflate/br），用于解压后展示
+            val respEncoding = headText.lineSequence()
+                .firstOrNull { it.lowercase().startsWith("content-encoding:") }
+                ?.substringAfter(':')?.trim()?.lowercase() ?: ""
 
             // 6) 回传响应头
             clientOut.write(headText.toByteArray())
@@ -217,7 +224,7 @@ class CaptureProxy(
                     requestBody = reqBody.toString(Charsets.UTF_8),
                     statusCode = status,
                     responseHeaders = headText.trim(),
-                    responseBody = recorded.toString(Charsets.UTF_8.name()),
+                    responseBody = decompress(recorded.toByteArray(), respEncoding),
                 )
             )
         }
@@ -275,6 +282,26 @@ class CaptureProxy(
                 }
             }
             up.interrupt()
+        }
+    }
+
+    /** 按 Content-Encoding 解压响应体（gzip / deflate）。br 无内置支持，保持原样。 */
+    private fun decompress(bytes: ByteArray, encoding: String): String {
+        if (bytes.isEmpty()) return ""
+        if (encoding.isEmpty() || encoding.contains("identity")) {
+            return String(bytes, Charsets.UTF_8)
+        }
+        return runCatching {
+            val out = ByteArrayOutputStream()
+            when {
+                encoding.contains("gzip") -> GZIPInputStream(ByteArrayInputStream(bytes)).use { it.copyTo(out) }
+                encoding.contains("deflate") -> InflaterInputStream(ByteArrayInputStream(bytes)).use { it.copyTo(out) }
+                else -> return String(bytes, Charsets.UTF_8)
+            }
+            String(out.toByteArray(), Charsets.UTF_8)
+        }.getOrElse {
+            // 解压失败（多为记录被截断），退回原文
+            String(bytes, Charsets.UTF_8)
         }
     }
 

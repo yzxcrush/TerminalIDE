@@ -128,4 +128,9 @@
     <string name="capture_filter_tip">Blacklist wins; subdomains supported</string>
     <string name="capture_pick_apps">Pick apps for blacklist</string>
     <string name="capture_no_apps">No known apps found</string>
+    <string name="capture_search_hint">Search URL / host</string>
+    <string name="capture_group">Group</string>
+    <string name="capture_edit_replay">Edit & replay</string>
+    <string name="capture_ai_draft">AI draft</string>
+    <string name="capture_send">Send</string>
 </resources>

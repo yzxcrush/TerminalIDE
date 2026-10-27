@@ -129,4 +129,9 @@
     <string name="capture_pick_apps">选择应用加入黑名单</string>
     <string name="capture_no_apps">未检测到已知应用
 可手动在上方填写域名</string>
+    <string name="capture_search_hint">搜索 URL / 域名</string>
+    <string name="capture_group">分组</string>
+    <string name="capture_edit_replay">编辑重放</string>
+    <string name="capture_ai_draft">AI 草拟</string>
+    <string name="capture_send">发送</string>
 </resources>

@@ -51,6 +51,116 @@ class CaptureViewModel : ViewModel() {
     private val _replayResult = MutableStateFlow<String?>(null)
     val replayResult: StateFlow<String?> = _replayResult.asStateFlow()
 
+    /** 可编辑的重放草稿。 */
+    data class ReplayDraft(
+        val method: String,
+        val url: String,
+        val headers: String,
+        val body: String,
+    )
+
+    private val _draft = MutableStateFlow<ReplayDraft?>(null)
+    val draft: StateFlow<ReplayDraft?> = _draft.asStateFlow()
+
+    fun openDraft(entry: CaptureEntry) {
+        _draft.value = ReplayDraft(
+            method = entry.method,
+            url = entry.url,
+            headers = entry.requestHeaders,
+            body = entry.requestBody,
+        )
+    }
+
+    fun closeDraft() {
+        _draft.value = null
+    }
+
+    /** 发送编辑后的请求。 */
+    fun sendDraft(d: ReplayDraft) {
+        _replayResult.value = "发送中…"
+        viewModelScope.launch(Dispatchers.IO) {
+            val text = runCatching { doSend(d.method, d.url, d.headers, d.body) }
+                .getOrElse { "⚠️ 重放失败：${it.message ?: it}" }
+            _replayResult.value = text
+        }
+    }
+
+    private fun doSend(method: String, url: String, headers: String, body: String): String {
+        val reqBuilder = Request.Builder().url(url)
+        val skip = setOf(
+            "host", "content-length", "transfer-encoding", "connection",
+            "accept-encoding", "content-encoding", "proxy-connection",
+        )
+        headers.lineSequence().forEach { line ->
+            val idx = line.indexOf(':')
+            if (idx > 0) {
+                val name = line.substring(0, idx).trim()
+                val value = line.substring(idx + 1).trim()
+                if (name.isNotEmpty() && name.lowercase() !in skip && value.isNotEmpty()) {
+                    runCatching { reqBuilder.header(name, value) }
+                }
+            }
+        }
+        val m = method.uppercase()
+        val req = when {
+            body.isNotEmpty() -> reqBuilder.method(m, body.toRequestBody("application/octet-stream".toMediaTypeOrNull())).build()
+            m == "GET" -> reqBuilder.get().build()
+            m == "HEAD" -> reqBuilder.head().build()
+            m == "DELETE" -> reqBuilder.delete().build()
+            else -> reqBuilder.method(m, ByteArray(0).toRequestBody(null)).build()
+        }
+        return http.newCall(req).execute().use { resp ->
+            "HTTP ${resp.code}\n\n${resp.body?.string().orEmpty().take(8000)}"
+        }
+    }
+
+    /** AI 分析抓到的请求，并草拟一份可重放的请求（JSON 解析）。 */
+    fun draftWithAi(entry: CaptureEntry) {
+        _aiResult.value = null
+        _analyzing.value = true
+        viewModelScope.launch {
+            val prompt = buildString {
+                append("下面是我抓到的一个 HTTP 请求。请分析它，然后**只输出一个 JSON 对象**，")
+                append("格式：{\"method\":\"GET\",\"url\":\"完整URL\",\"headers\":{\"键\":\"值\"},\"body\":\"请求体\"}")
+                append("。headers 里请保留必要的认证头。不要输出任何其他文字。\n\n")
+                append(maskEntry(entry).toPromptText())
+            }
+            val reply = runCatching {
+                app.aiService.chat(prompt, emptyList(), Language.PYTHON, "")
+            }.getOrElse { "⚠️ 请求失败：${it.message ?: it}" }
+            val parsed = extractJson(reply)
+            _analyzing.value = false
+            if (parsed != null) {
+                _draft.value = parsed
+                _status.value = "AI 已草拟：${parsed.method} ${parsed.url}（可修改后发送）"
+            } else {
+                _aiResult.value = reply
+            }
+        }
+    }
+
+    /** 从 AI 回复里提取 JSON 并转成草稿。 */
+    private fun extractJson(reply: String): ReplayDraft? {
+        val start = reply.indexOf('{')
+        val end = reply.lastIndexOf('}')
+        if (start < 0 || end <= start) return null
+        return runCatching {
+            val o = org.json.JSONObject(reply.substring(start, end + 1))
+            val hdrs = o.optJSONObject("headers")?.let { h ->
+                (0 until h.length()).joinToString("\n") { i ->
+                    val k = h.names().getString(i)
+                    "$k: ${h.optString(k)}"
+                }
+            } ?: ""
+            ReplayDraft(
+                method = o.optString("method", "GET"),
+                url = o.optString("url", ""),
+                headers = hdrs,
+                body = o.optString("body", ""),
+            )
+        }.getOrNull()
+    }
+
     /** 一键隐藏：脱敏显示（token / cookie / 密码 等打码）。 */
     private val _hidden = MutableStateFlow(false)
     val hidden: StateFlow<Boolean> = _hidden.asStateFlow()
@@ -276,45 +386,7 @@ class CaptureViewModel : ViewModel() {
     // ---------- 重放 ----------
 
     fun replay(entry: CaptureEntry) {
-        _replayResult.value = "发送中…"
-        viewModelScope.launch(Dispatchers.IO) {
-            val body = entry.requestBody.takeIf { it.isNotEmpty() }
-            val reqBuilder = Request.Builder().url(entry.url)
-            val skip = setOf(
-                "host", "content-length", "transfer-encoding", "connection",
-                "accept-encoding", "content-encoding", "proxy-connection",
-            )
-            entry.requestHeaders.lineSequence().forEach { line ->
-                val idx = line.indexOf(':')
-                if (idx > 0) {
-                    val name = line.substring(0, idx).trim()
-                    val value = line.substring(idx + 1).trim()
-                    if (name.isNotEmpty() && name.lowercase() !in skip && value.isNotEmpty()) {
-                        runCatching { reqBuilder.header(name, value) }
-                    }
-                }
-            }
-            val method = entry.method.uppercase()
-            val request = runCatching {
-                when {
-                    body != null -> reqBuilder.method(method, body.toRequestBody("application/octet-stream".toMediaTypeOrNull())).build()
-                    method == "GET" -> reqBuilder.get().build()
-                    method == "HEAD" -> reqBuilder.head().build()
-                    method == "DELETE" -> reqBuilder.delete().build()
-                    else -> reqBuilder.method(method, ByteArray(0).toRequestBody(null)).build()
-                }
-            }.getOrElse {
-                _replayResult.value = "构造请求失败：${it.message}"
-                return@launch
-            }
-            val text = runCatching {
-                http.newCall(request).execute().use { resp ->
-                    val b = resp.body?.string().orEmpty()
-                    "HTTP ${resp.code}\n\n${b.take(8000)}"
-                }
-            }.getOrElse { "⚠️ 重放失败：${it.message ?: it}" }
-            _replayResult.value = text
-        }
+        sendDraft(ReplayDraft(entry.method, entry.url, entry.requestHeaders, entry.requestBody))
     }
 
     fun clearReplayResult() {

@@ -128,4 +128,9 @@
     <string name="capture_filter_tip">黑名單優先；支援子網域</string>
     <string name="capture_pick_apps">選擇應用加入黑名單</string>
     <string name="capture_no_apps">未偵測到已知應用</string>
+    <string name="capture_search_hint">搜尋 URL / 網域</string>
+    <string name="capture_group">分組</string>
+    <string name="capture_edit_replay">編輯重播</string>
+    <string name="capture_ai_draft">AI 草擬</string>
+    <string name="capture_send">傳送</string>
 </resources>

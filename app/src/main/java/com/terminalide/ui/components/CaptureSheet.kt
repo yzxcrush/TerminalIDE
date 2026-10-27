@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.clickable
@@ -41,6 +42,32 @@ import com.terminalide.R
 import com.terminalide.capture.CaptureEntry
 import com.terminalide.ui.CaptureViewModel
 
+/** 单条抓包记录。 */
+@Composable
+private fun CaptureRow(vm: CaptureViewModel, rawEntry: CaptureEntry, onClick: (CaptureEntry) -> Unit) {
+    val entry = vm.maskEntry(rawEntry)
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable { onClick(entry) }
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Text(
+            "${entry.method} ${entry.url}",
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            if (entry.error != null) "❌ ${entry.error}"
+            else "${entry.statusCode} · ${entry.responseBody.length} 字节",
+            style = MaterialTheme.typography.labelSmall,
+            color = if (entry.error != null) MaterialTheme.colorScheme.error
+            else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 /** 抓包面板：启停、CA/代理设置、请求列表、详情、AI 解析与重放。 */
 @Composable
 fun CaptureSheet(vm: CaptureViewModel) {
@@ -56,6 +83,8 @@ fun CaptureSheet(vm: CaptureViewModel) {
 
     var showFilter by remember { mutableStateOf(false) }
     var showAppList by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
+    var grouped by remember { mutableStateOf(false) }
     var detail by remember { mutableStateOf<CaptureEntry?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
 
@@ -110,28 +139,53 @@ fun CaptureSheet(vm: CaptureViewModel) {
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
+        // 搜索 / 分组
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                placeholder = { Text(stringResource(R.string.capture_search_hint), fontSize = 12.sp) },
+                textStyle = MaterialTheme.typography.bodySmall,
+            )
+            TextButton(onClick = { grouped = !grouped }) {
+                Text(
+                    stringResource(R.string.capture_group),
+                    fontSize = 11.sp,
+                    color = if (grouped) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        val filtered = if (query.isBlank()) items else items.filter {
+            it.url.contains(query, true) || it.host.contains(query, true) || it.method.contains(query, true)
+        }
+
         LazyColumn(Modifier.weight(1f)) {
-            items(items, key = { it.id }) { rawEntry ->
-                val entry = vm.maskEntry(rawEntry)
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { detail = entry }
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                ) {
-                    Text(
-                        "${entry.method} ${entry.url}",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    Text(
-                        if (entry.error != null) "❌ ${entry.error}"
-                        else "${entry.statusCode} · ${entry.responseBody.length} 字节",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (entry.error != null) MaterialTheme.colorScheme.error
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+            if (grouped) {
+                val groups = filtered.groupBy { it.host }
+                groups.forEach { (host, list) ->
+                    item(key = "g_$host") {
+                        Text(
+                            "${host}（${list.size}）",
+                            modifier = Modifier.fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    items(list, key = { it.id }) { rawEntry ->
+                        CaptureRow(vm, rawEntry) { detail = it }
+                    }
+                }
+            } else {
+                items(filtered, key = { it.id }) { rawEntry ->
+                    CaptureRow(vm, rawEntry) { detail = it }
                 }
             }
         }
@@ -165,13 +219,49 @@ fun CaptureSheet(vm: CaptureViewModel) {
             },
             dismissButton = {
                 Row {
-                    TextButton(onClick = { vm.replay(current); detail = null }) {
-                        Text(stringResource(R.string.capture_replay))
+                    TextButton(onClick = { vm.openDraft(current); detail = null }) {
+                        Text(stringResource(R.string.capture_edit_replay))
                     }
-                    TextButton(onClick = { detail = null }) {
-                        Text(stringResource(R.string.action_cancel))
+                    TextButton(onClick = { vm.draftWithAi(current); detail = null }) {
+                        Text(stringResource(R.string.capture_ai_draft))
                     }
                 }
+            },
+        )
+    }
+
+    // 重放编辑器
+    val d = vm.draft.collectAsStateWithLifecycle().value
+    if (d != null) {
+        var method by remember(d) { mutableStateOf(d.method) }
+        var url by remember(d) { mutableStateOf(d.url) }
+        var headers by remember(d) { mutableStateOf(d.headers) }
+        var body by remember(d) { mutableStateOf(d.body) }
+        AlertDialog(
+            onDismissRequest = { vm.closeDraft() },
+            title = { Text(stringResource(R.string.capture_edit_replay)) },
+            text = {
+                Column(Modifier.height(440.dp).verticalScroll(rememberScrollState())) {
+                    OutlinedTextField(method, { method = it }, Modifier.fillMaxWidth(), singleLine = true,
+                        label = { Text("Method", fontSize = 11.sp) })
+                    OutlinedTextField(url, { url = it }, Modifier.fillMaxWidth(), singleLine = true,
+                        label = { Text("URL", fontSize = 11.sp) })
+                    OutlinedTextField(headers, { headers = it }, Modifier.fillMaxWidth(), minLines = 4,
+                        label = { Text("Headers", fontSize = 11.sp) },
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                    OutlinedTextField(body, { body = it }, Modifier.fillMaxWidth(), minLines = 3,
+                        label = { Text("Body", fontSize = 11.sp) },
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace))
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.sendDraft(com.terminalide.ui.CaptureViewModel.ReplayDraft(method, url, headers, body))
+                    vm.closeDraft()
+                }) { Text(stringResource(R.string.capture_send)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { vm.closeDraft() }) { Text(stringResource(R.string.action_cancel)) }
             },
         )
     }
