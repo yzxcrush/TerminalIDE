@@ -5,6 +5,8 @@ import android.util.Base64
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.terminalide.TerminalIdeApp
+import com.terminalide.capture.CaptureEngine
+import com.terminalide.capture.CaptureService
 import com.terminalide.capture.CaptureEntry
 import com.terminalide.capture.CaptureProxy
 import com.terminalide.capture.CaptureStore
@@ -29,14 +31,13 @@ import java.util.concurrent.TimeUnit
 class CaptureViewModel : ViewModel() {
 
     private val app get() = TerminalIdeApp.instance
-    private val ca by lazy { CaManager(app) }
-    private val proxy by lazy { CaptureProxy(ca, PORT) }
+    private val ca: CaManager get() = CaptureEngine.caManager(app)
     private val http = OkHttpClient.Builder()
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(40, TimeUnit.SECONDS)
         .build()
 
-    private val _running = MutableStateFlow(false)
+    private val _running = CaptureEngine.running
     val running: StateFlow<Boolean> = _running.asStateFlow()
 
     private val _status = MutableStateFlow("点「开始抓包」后，把系统代理或客户端代理指向 127.0.0.1:$PORT")
@@ -111,7 +112,7 @@ class CaptureViewModel : ViewModel() {
     private fun clearStaleProxyIfNeeded() {
         runCatching {
             val out = execRoot("settings get global http_proxy").trim()
-            if (out.contains("8888") && !proxy.isRunning()) {
+            if (out.contains("8888") && !CaptureEngine.isRunning()) {
                 execRoot("settings put global http_proxy :0")
             }
         }
@@ -120,20 +121,13 @@ class CaptureViewModel : ViewModel() {
     // ---------- 代理启停 ----------
 
     fun start() {
-        ca.ensure()
-        val ok = proxy.start()
-        _running.value = ok
-        _status.value = if (ok) {
-            "抓包已启动：127.0.0.1:$PORT\n需要 HTTPS 解密请先导出并安装 CA 证书"
-        } else {
-            "启动失败：端口 $PORT 可能被占用"
-        }
+        CaptureService.start(app)
+        _status.value = "抓包已启动：127.0.0.1:${CaptureEngine.PORT}\n（前台服务运行中，通知栏可停止）"
     }
 
     fun stop() {
-        proxy.stop()
-        _running.value = false
-        // 关键：停止时同步清掉系统代理，避免"App 被杀→代理死→手机断网"
+        CaptureService.stop(app)
+        // 服务 onDestroy 也会清，这里再兜底一次
         viewModelScope.launch(Dispatchers.IO) {
             runCatching { execRoot("settings put global http_proxy :0") }
         }
@@ -142,7 +136,7 @@ class CaptureViewModel : ViewModel() {
 
     /** 一键清代理：清系统代理 + 停止抓包。 */
     fun clearProxyAndStop(onDone: (String) -> Unit) {
-        proxy.stop()
+        CaptureService.stop(app)
         _running.value = false
         viewModelScope.launch(Dispatchers.IO) {
             runCatching { execRoot("settings put global http_proxy :0") }
@@ -182,7 +176,7 @@ class CaptureViewModel : ViewModel() {
         }
     }
 
-    /** 用 root 安装 CA 到系统证书（挂载覆盖，重启后失效）。 */
+    /** 用 root 安装 CA 到系统级（Android 14+ 走 APEX 注入）。 */
     fun installCaToSystem(onDone: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             val der = ca.caDer()
@@ -192,25 +186,42 @@ class CaptureViewModel : ViewModel() {
             }
             val hash = subjectHash(der)
             val pem = buildPem(der)
-            val tmp = File(app.cacheDir, "ca-install")
-            tmp.mkdirs()
+            val tmp = File(app.cacheDir, "ca-install").apply { mkdirs() }
             val pemFile = File(tmp, "$hash.0").apply { writeText(pem) }
+            // 完整流程：选证书源 -> tmpfs -> 复制 -> 校验 -> 挂载到 APEX 各命名空间
             val script = """
-                set -e
-                mkdir -p /data/local/tmp/ticacerts
-                rm -f /data/local/tmp/ticacerts/* 2>/dev/null || true
-                cp /system/etc/security/cacerts/* /data/local/tmp/ticacerts/ 2>/dev/null || true
-                cp "${pemFile.absolutePath}" /data/local/tmp/ticacerts/$hash.0
-                mount -t tmpfs tmpfs /system/etc/security/cacerts 2>/dev/null || true
-                cp /data/local/tmp/ticacerts/* /system/etc/security/cacerts/
-                chmod 644 /system/etc/security/cacerts/*
-                ls /system/etc/security/cacerts/$hash.0
+                SRC=""
+                if [ -d /apex/com.android.conscrypt@360499999/cacerts ] && [ ${'$'}(ls /apex/com.android.conscrypt@360499999/cacerts/*.0 2>/dev/null | wc -l) -gt 50 ]; then
+                  SRC=/apex/com.android.conscrypt@360499999/cacerts
+                elif [ ${'$'}(ls /apex/com.android.conscrypt/cacerts/*.0 2>/dev/null | wc -l) -gt 50 ]; then
+                  SRC=/apex/com.android.conscrypt/cacerts
+                fi
+                [ -z "${'$'}SRC" ] && { echo "NO_SOURCE"; exit 1; }
+                T=/data/local/tmp/terminalide-ca-app
+                umount ${'$'}T 2>/dev/null; rm -rf ${'$'}T; mkdir -p ${'$'}T
+                mount -t tmpfs tmpfs ${'$'}T || { echo "MOUNT_FAIL"; exit 1; }
+                cp -a ${'$'}SRC/*.0 ${'$'}T/ 2>/dev/null
+                cp -f "${pemFile.absolutePath}" ${'$'}T/
+                CNT=${'$'}(ls ${'$'}T/*.0 2>/dev/null | wc -l)
+                [ "${'$'}CNT" -lt 50 ] && { umount ${'$'}T 2>/dev/null; echo "COPY_FAIL"; exit 1; }
+                chmod 644 ${'$'}T/* 2>/dev/null
+                chcon -R u:object_r:system_security_cacerts_file:s0 ${'$'}T 2>/dev/null
+                mount --bind ${'$'}T /apex/com.android.conscrypt/cacerts 2>/dev/null
+                nsenter --mount=/proc/1/ns/mnt -- mount --bind ${'$'}T /apex/com.android.conscrypt/cacerts 2>/dev/null
+                for z in zygote zygote64; do
+                  for pid in ${'$'}(pidof ${'$'}z 2>/dev/null); do
+                    nsenter --mount=/proc/${'$'}pid/ns/mnt -- mount --bind ${'$'}T /apex/com.android.conscrypt/cacerts 2>/dev/null
+                  done
+                done
+                ls /apex/com.android.conscrypt/cacerts/$hash.0 && echo "CA_OK_${'$'}CNT"
             """.trimIndent()
             val r = runCatching { execRoot(script) }
-            val msg = if (r.isSuccess && r.getOrNull()?.contains(hash) == true) {
-                "✅ CA 已安装到系统证书（$hash.0）\n重启相关 App 后生效（重启失效，需重新安装）"
-            } else {
-                "⚠️ 系统证书安装失败：${r.exceptionOrNull()?.message ?: r.getOrNull()}\n请改用「导出 CA」手动安装"
+            val out = r.getOrNull().orEmpty()
+            val msg = when {
+                out.contains("CA_OK_") -> "✅ CA 已装到系统级（${'$'}out 个证书）\n重启相关 App 后生效；重启手机后需重装"
+                out.contains("NO_SOURCE") -> "❌ 找不到可用的系统证书源"
+                out.contains("COPY_FAIL") -> "❌ 复制失败，已中止（未挂载，系统证书未被破坏）"
+                else -> "⚠️ 安装失败：${r.exceptionOrNull()?.message ?: out.take(200)}"
             }
             withContext(Dispatchers.Main) { onDone(msg) }
         }
@@ -350,8 +361,10 @@ class CaptureViewModel : ViewModel() {
     }
 
     override fun onCleared() {
-        proxy.stop()
-        runCatching { execRoot("settings put global http_proxy :0") }
+        // 代理由前台服务持有，这里只兜底清理可能残留的系统代理
+        if (!CaptureEngine.isRunning()) {
+            runCatching { execRoot("settings put global http_proxy :0") }
+        }
     }
 
     // ---------- 脱敏 ----------
@@ -388,6 +401,6 @@ class CaptureViewModel : ViewModel() {
     }
 
     companion object {
-        const val PORT = 8888
+        const val PORT = CaptureEngine.PORT
     }
 }
