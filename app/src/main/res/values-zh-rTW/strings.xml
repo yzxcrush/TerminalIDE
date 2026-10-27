@@ -116,4 +116,8 @@
     <string name="capture_clear_proxy">清代理</string>
     <string name="capture_ai_analyze">AI 解析</string>
     <string name="capture_replay">重播</string>
+    <string name="capture_hide">一鍵隱藏</string>
+    <string name="capture_hide_on">隱藏中</string>
+    <string name="capture_clear_proxy_now">一鍵清代理</string>
+    <string name="capture_privacy_tip">開啟後 token/Cookie 會打碼</string>
 </resources>

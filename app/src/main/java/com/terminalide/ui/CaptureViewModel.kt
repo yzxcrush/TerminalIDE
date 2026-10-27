@@ -51,7 +51,29 @@ class CaptureViewModel : ViewModel() {
     private val _replayResult = MutableStateFlow<String?>(null)
     val replayResult: StateFlow<String?> = _replayResult.asStateFlow()
 
+    /** 一键隐藏：脱敏显示（token / cookie / 密码 等打码）。 */
+    private val _hidden = MutableStateFlow(false)
+    val hidden: StateFlow<Boolean> = _hidden.asStateFlow()
+
+    fun toggleHidden() {
+        _hidden.value = !_hidden.value
+    }
+
     val items: StateFlow<List<CaptureEntry>> = CaptureStore.items
+
+    init {
+        // 启动时检查：如果系统代理指向我们但抓包没开，自动清掉，避免断网
+        viewModelScope.launch(Dispatchers.IO) { clearStaleProxyIfNeeded() }
+    }
+
+    private fun clearStaleProxyIfNeeded() {
+        runCatching {
+            val out = execRoot("settings get global http_proxy").trim()
+            if (out.contains("8888") && !proxy.isRunning()) {
+                execRoot("settings put global http_proxy :0")
+            }
+        }
+    }
 
     // ---------- 代理启停 ----------
 
@@ -69,7 +91,23 @@ class CaptureViewModel : ViewModel() {
     fun stop() {
         proxy.stop()
         _running.value = false
-        _status.value = "已停止"
+        // 关键：停止时同步清掉系统代理，避免"App 被杀→代理死→手机断网"
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { execRoot("settings put global http_proxy :0") }
+        }
+        _status.value = "已停止（系统代理已自动清除）"
+    }
+
+    /** 一键清代理：清系统代理 + 停止抓包。 */
+    fun clearProxyAndStop(onDone: (String) -> Unit) {
+        proxy.stop()
+        _running.value = false
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching { execRoot("settings put global http_proxy :0") }
+            withContext(Dispatchers.Main) {
+                onDone("✅ 系统代理已清除，网络恢复直连\n抓包代理已停止")
+            }
+        }
     }
 
     fun clear() {
@@ -170,7 +208,7 @@ class CaptureViewModel : ViewModel() {
                 append("1) 这个接口是做什么的\n")
                 append("2) 请求头/参数里哪些是关键（token、签名、时间戳等）\n")
                 append("3) 用 Python requests 怎么写一段等价的请求代码\n\n")
-                append(entry.toPromptText())
+                append(maskEntry(entry).toPromptText())
             }
             val result = runCatching {
                 app.aiService.chat(prompt, emptyList(), Language.PYTHON, "")
@@ -255,17 +293,56 @@ class CaptureViewModel : ViewModel() {
         }.getOrDefault(System.currentTimeMillis().toString())
     }
 
+    /**
+     * 执行 root 命令：把脚本写到临时文件再 su 执行，避免嵌套引号被 shell 解析坏。
+     */
     private fun execRoot(script: String): String {
-        val process = ProcessBuilder("sh", "-c", "su -c 'sh -c \"$script\"'").start()
+        val f = File(app.cacheDir, "root_cmd.sh")
+        f.writeText("#!/system/bin/sh\n$script\n")
+        val process = ProcessBuilder("su", "-c", "sh ${f.absolutePath}").start()
         val out = process.inputStream.bufferedReader().readText()
         val err = process.errorStream.bufferedReader().readText()
         process.waitFor()
-        if (err.isNotBlank()) throw IllegalStateException(err.take(300))
+        if (err.isNotBlank() && out.isBlank()) throw IllegalStateException(err.take(300))
         return out
     }
 
     override fun onCleared() {
         proxy.stop()
+        runCatching { execRoot("settings put global http_proxy :0") }
+    }
+
+    // ---------- 脱敏 ----------
+
+    private val SENSITIVE = setOf(
+        "authorization", "cookie", "set-cookie", "token", "x-token",
+        "x-auth-token", "x-api-key", "api-key", "x-csrf-token", "sessionid",
+    )
+
+    /** 按隐私模式返回脱敏后的条目。 */
+    fun maskEntry(entry: CaptureEntry): CaptureEntry {
+        if (!_hidden.value) return entry
+        return entry.copy(
+            requestHeaders = maskHeaders(entry.requestHeaders),
+            responseHeaders = maskHeaders(entry.responseHeaders),
+            requestBody = maskBody(entry.requestBody),
+            responseBody = maskBody(entry.responseBody),
+        )
+    }
+
+    private fun maskHeaders(raw: String): String = raw.lineSequence().joinToString("\n") { line ->
+        val idx = line.indexOf(':')
+        if (idx > 0 && line.substring(0, idx).trim().lowercase() in SENSITIVE) {
+            line.substring(0, idx + 1) + " ***（已隐藏）***"
+        } else line
+    }
+
+    private fun maskBody(raw: String): String {
+        if (raw.isEmpty()) return raw
+        // 简单规则：把 xxx=值 / "token": "值" 打码
+        return raw
+            .replace(Regex("(?i)(token|password|passwd|pwd|cookie|authorization|secret)([\"']?\\s*[:=]\\s*[\"']?)[^&\"',}\\s]+"), "$1$2***")
+            .take(2000)
     }
 
     companion object {

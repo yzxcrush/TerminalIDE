@@ -116,4 +116,8 @@
     <string name="capture_clear_proxy">Clear proxy</string>
     <string name="capture_ai_analyze">AI analyze</string>
     <string name="capture_replay">Replay</string>
+    <string name="capture_hide">Hide</string>
+    <string name="capture_hide_on">Hidden</string>
+    <string name="capture_clear_proxy_now">Clear proxy now</string>
+    <string name="capture_privacy_tip">Mask token/cookie when enabled</string>
 </resources>

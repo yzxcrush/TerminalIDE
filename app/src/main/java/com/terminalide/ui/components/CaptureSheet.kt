@@ -45,6 +45,7 @@ fun CaptureSheet(vm: CaptureViewModel) {
     val running by vm.running.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
     val items by vm.items.collectAsStateWithLifecycle()
+    val hidden by vm.hidden.collectAsStateWithLifecycle()
     val analyzing by vm.analyzing.collectAsStateWithLifecycle()
     val aiResult by vm.aiResult.collectAsStateWithLifecycle()
     val replayResult by vm.replayResult.collectAsStateWithLifecycle()
@@ -80,6 +81,20 @@ fun CaptureSheet(vm: CaptureViewModel) {
         Row(
             Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
         ) {
+            TextButton(onClick = { vm.toggleHidden() }) {
+                Text(
+                    stringResource(if (hidden) R.string.capture_hide_on else R.string.capture_hide),
+                    fontSize = 11.sp,
+                    color = if (hidden) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            TextButton(onClick = { vm.clearProxyAndStop { message = it } }) {
+                Text(
+                    stringResource(R.string.capture_clear_proxy_now),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
             TextButton(onClick = { vm.exportCa { message = it } }) { Text(stringResource(R.string.capture_export_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.installCaToSystem { message = it } }) { Text(stringResource(R.string.capture_install_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.setSystemProxy { message = it } }) { Text(stringResource(R.string.capture_set_proxy), fontSize = 11.sp) }
@@ -88,7 +103,8 @@ fun CaptureSheet(vm: CaptureViewModel) {
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 
         LazyColumn(Modifier.weight(1f)) {
-            items(items, key = { it.id }) { entry ->
+            items(items, key = { it.id }) { rawEntry ->
+                val entry = vm.maskEntry(rawEntry)
                 Column(
                     Modifier
                         .fillMaxWidth()
@@ -116,17 +132,18 @@ fun CaptureSheet(vm: CaptureViewModel) {
     // 详情
     val current = detail
     if (current != null) {
+        val shown = vm.maskEntry(current)
         AlertDialog(
             onDismissRequest = { detail = null },
-            title = { Text("${current.method} ${current.host}") },
+            title = { Text("${shown.method} ${shown.host}") },
             text = {
                 Column(Modifier.height(420.dp).verticalScroll(rememberScrollState())) {
                     SelectionContainer {
                         Text(
-                            current.url + "\n\n【请求头】\n" + current.requestHeaders +
-                                "\n\n【请求体】\n" + current.requestBody +
-                                "\n\n【响应 ${current.statusCode}】\n" + current.responseHeaders +
-                                "\n\n【响应体】\n" + current.responseBody,
+                            shown.url + "\n\n【请求头】\n" + shown.requestHeaders +
+                                "\n\n【请求体】\n" + shown.requestBody +
+                                "\n\n【响应 ${shown.statusCode}】\n" + shown.responseHeaders +
+                                "\n\n【响应体】\n" + shown.responseBody,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 10.sp,
                         )

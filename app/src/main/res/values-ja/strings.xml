@@ -116,4 +116,8 @@
     <string name="capture_clear_proxy">プロキシ解除</string>
     <string name="capture_ai_analyze">AI で解析</string>
     <string name="capture_replay">再送</string>
+    <string name="capture_hide">非表示</string>
+    <string name="capture_hide_on">非表示中</string>
+    <string name="capture_clear_proxy_now">プロキシ解除</string>
+    <string name="capture_privacy_tip">有効にすると token/Cookie を伏せます</string>
 </resources>
