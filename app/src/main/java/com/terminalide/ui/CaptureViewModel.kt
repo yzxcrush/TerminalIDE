@@ -93,6 +93,16 @@ class CaptureViewModel : ViewModel() {
 
     val items: StateFlow<List<CaptureEntry>> = CaptureStore.items
 
+    init {
+        // 启动自检：如果系统代理还指着我们但抓包没开，自动清掉（防止 App 被杀后断网）
+        // 带 10 秒超时，避免 root 未授权时卡住
+        viewModelScope.launch(Dispatchers.IO) {
+            kotlinx.coroutines.withTimeoutOrNull(10_000) {
+                runCatching { clearStaleProxyIfNeeded() }
+            }
+        }
+    }
+
     /** 打开抓包面板时才做残留代理检查（避免每次启动 App 都弹 root 授权）。 */
     fun onSheetOpened() {
         viewModelScope.launch(Dispatchers.IO) { clearStaleProxyIfNeeded() }
