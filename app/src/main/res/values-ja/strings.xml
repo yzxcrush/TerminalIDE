@@ -126,4 +126,6 @@
     <string name="capture_whitelist">ホワイトリスト（設定時はこのドメインのみ）</string>
     <string name="capture_filter_preset">機密アプリのプリセットを追加</string>
     <string name="capture_filter_tip">ブラックリスト優先／サブドメイン対応</string>
+    <string name="capture_pick_apps">アプリを選択してブラックリストへ</string>
+    <string name="capture_no_apps">対象アプリが見つかりません</string>
 </resources>

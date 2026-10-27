@@ -55,6 +55,7 @@ fun CaptureSheet(vm: CaptureViewModel) {
     LaunchedEffect(Unit) { vm.onSheetOpened() }
 
     var showFilter by remember { mutableStateOf(false) }
+    var showAppList by remember { mutableStateOf(false) }
     var detail by remember { mutableStateOf<CaptureEntry?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
 
@@ -101,6 +102,7 @@ fun CaptureSheet(vm: CaptureViewModel) {
                 )
             }
             TextButton(onClick = { showFilter = true }) { Text(stringResource(R.string.capture_filter), fontSize = 11.sp) }
+            TextButton(onClick = { showAppList = true }) { Text(stringResource(R.string.capture_pick_apps), fontSize = 11.sp) }
             TextButton(onClick = { vm.exportCa { message = it } }) { Text(stringResource(R.string.capture_export_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.installCaToSystem { message = it } }) { Text(stringResource(R.string.capture_install_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.setSystemProxy { message = it } }) { Text(stringResource(R.string.capture_set_proxy), fontSize = 11.sp) }
@@ -216,6 +218,19 @@ fun CaptureSheet(vm: CaptureViewModel) {
                 TextButton(onClick = { vm.clearReplayResult() }) { Text("关闭") }
             },
             dismissButton = {},
+        )
+    }
+
+    // 应用列表加入黑名单
+    if (showAppList) {
+        val black by vm.blacklist.collectAsStateWithLifecycle()
+        AppBlacklistDialog(
+            blacklist = com.terminalide.capture.CaptureFilter.parse(black),
+            onSave = { list ->
+                vm.saveFilter(com.terminalide.capture.CaptureFilter.format(list), vm.whitelist.value)
+                message = "✅ 已更新黑名单（${list.size} 个域名）"
+            },
+            onDismiss = { showAppList = false },
         )
     }
 

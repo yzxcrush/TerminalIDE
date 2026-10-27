@@ -126,4 +126,6 @@
     <string name="capture_whitelist">Whitelist (if set, only these are captured)</string>
     <string name="capture_filter_preset">Add sensitive app preset</string>
     <string name="capture_filter_tip">Blacklist wins; subdomains supported</string>
+    <string name="capture_pick_apps">Pick apps for blacklist</string>
+    <string name="capture_no_apps">No known apps found</string>
 </resources>

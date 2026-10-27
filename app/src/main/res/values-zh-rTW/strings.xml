@@ -126,4 +126,6 @@
     <string name="capture_whitelist">白名單（非空時只抓這些網域）</string>
     <string name="capture_filter_preset">加入敏感 App 預設</string>
     <string name="capture_filter_tip">黑名單優先；支援子網域</string>
+    <string name="capture_pick_apps">選擇應用加入黑名單</string>
+    <string name="capture_no_apps">未偵測到已知應用</string>
 </resources>
