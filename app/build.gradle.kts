@@ -16,8 +16,8 @@ android {
         applicationId = "com.terminalide"
         minSdk = 24
         targetSdk = 35
-        versionCode = 49
-        versionName = "1.25.2"
+        versionCode = 50
+        versionName = "1.25.3"
 
         // 只打 arm64-v8a（Python 3.12+ 仅支持 64 位）
         ndk {
@@ -69,6 +69,13 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // BouncyCastle 多个 jar 带同名文件，必须排除否则打包冲突
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/LICENSE"
+            excludes += "META-INF/LICENSE.txt"
+            excludes += "META-INF/NOTICE"
+            excludes += "META-INF/NOTICE.txt"
         }
     }
 
