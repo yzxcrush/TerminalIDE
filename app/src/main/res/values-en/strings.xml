@@ -108,4 +108,12 @@
     <string name="ai_generate">AI generate program</string>
     <string name="ai_generate_hint">Describe the program you want, AI will write the full code</string>
     <string name="action_generate">Generate</string>
+    <string name="capture_title">Capture</string>
+    <string name="capture_start">Start</string>
+    <string name="capture_export_ca">Export CA</string>
+    <string name="capture_install_ca">Install CA</string>
+    <string name="capture_set_proxy">Set proxy</string>
+    <string name="capture_clear_proxy">Clear proxy</string>
+    <string name="capture_ai_analyze">AI analyze</string>
+    <string name="capture_replay">Replay</string>
 </resources>

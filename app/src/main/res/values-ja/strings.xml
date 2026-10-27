@@ -108,4 +108,12 @@
     <string name="ai_generate">AI でプログラム生成</string>
     <string name="ai_generate_hint">作りたいプログラムを説明すると、AI がコードを書きます</string>
     <string name="action_generate">生成</string>
+    <string name="capture_title">キャプチャ</string>
+    <string name="capture_start">開始</string>
+    <string name="capture_export_ca">CA を書き出す</string>
+    <string name="capture_install_ca">システム CA に導入</string>
+    <string name="capture_set_proxy">プロキシ設定</string>
+    <string name="capture_clear_proxy">プロキシ解除</string>
+    <string name="capture_ai_analyze">AI で解析</string>
+    <string name="capture_replay">再送</string>
 </resources>

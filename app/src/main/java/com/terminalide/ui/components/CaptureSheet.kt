@@ -1,0 +1,210 @@
+package com.terminalide.ui.components
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.terminalide.R
+import com.terminalide.capture.CaptureEntry
+import com.terminalide.ui.CaptureViewModel
+
+/** 抓包面板：启停、CA/代理设置、请求列表、详情、AI 解析与重放。 */
+@Composable
+fun CaptureSheet(vm: CaptureViewModel) {
+    val running by vm.running.collectAsStateWithLifecycle()
+    val status by vm.status.collectAsStateWithLifecycle()
+    val items by vm.items.collectAsStateWithLifecycle()
+    val analyzing by vm.analyzing.collectAsStateWithLifecycle()
+    val aiResult by vm.aiResult.collectAsStateWithLifecycle()
+    val replayResult by vm.replayResult.collectAsStateWithLifecycle()
+
+    var detail by remember { mutableStateOf<CaptureEntry?>(null) }
+    var message by remember { mutableStateOf<String?>(null) }
+
+    Column(Modifier.fillMaxWidth().fillMaxHeight(0.9f)) {
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.capture_title),
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleLarge,
+            )
+            Button(onClick = { if (running) vm.stop() else vm.start() }) {
+                Text(stringResource(if (running) R.string.action_stop else R.string.capture_start))
+            }
+            Spacer(Modifier.width(8.dp))
+            TextButton(onClick = { vm.clear() }) {
+                Text(stringResource(R.string.action_clear))
+            }
+        }
+        Text(
+            status,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        // 工具按钮
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 8.dp),
+        ) {
+            TextButton(onClick = { vm.exportCa { message = it } }) { Text(stringResource(R.string.capture_export_ca), fontSize = 11.sp) }
+            TextButton(onClick = { vm.installCaToSystem { message = it } }) { Text(stringResource(R.string.capture_install_ca), fontSize = 11.sp) }
+            TextButton(onClick = { vm.setSystemProxy { message = it } }) { Text(stringResource(R.string.capture_set_proxy), fontSize = 11.sp) }
+            TextButton(onClick = { vm.clearSystemProxy { message = it } }) { Text(stringResource(R.string.capture_clear_proxy), fontSize = 11.sp) }
+        }
+        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
+
+        LazyColumn(Modifier.weight(1f)) {
+            items(items, key = { it.id }) { entry ->
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { detail = entry }
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        "${entry.method} ${entry.url}",
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Text(
+                        if (entry.error != null) "❌ ${entry.error}"
+                        else "${entry.statusCode} · ${entry.responseBody.length} 字节",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (entry.error != null) MaterialTheme.colorScheme.error
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+
+    // 详情
+    val current = detail
+    if (current != null) {
+        AlertDialog(
+            onDismissRequest = { detail = null },
+            title = { Text("${current.method} ${current.host}") },
+            text = {
+                Column(Modifier.height(420.dp).verticalScroll(rememberScrollState())) {
+                    SelectionContainer {
+                        Text(
+                            current.url + "\n\n【请求头】\n" + current.requestHeaders +
+                                "\n\n【请求体】\n" + current.requestBody +
+                                "\n\n【响应 ${current.statusCode}】\n" + current.responseHeaders +
+                                "\n\n【响应体】\n" + current.responseBody,
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 10.sp,
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { vm.analyze(current); detail = null }) {
+                    Text(if (analyzing) "AI 解析中…" else stringResource(R.string.capture_ai_analyze))
+                }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { vm.replay(current); detail = null }) {
+                        Text(stringResource(R.string.capture_replay))
+                    }
+                    TextButton(onClick = { detail = null }) {
+                        Text(stringResource(R.string.action_cancel))
+                    }
+                }
+            },
+        )
+    }
+
+    // AI 解析结果
+    val ai = aiResult
+    if (ai != null) {
+        val clipboard = LocalClipboardManager.current
+        AlertDialog(
+            onDismissRequest = { vm.clearAiResult() },
+            title = { Text(stringResource(R.string.capture_ai_analyze)) },
+            text = {
+                Column(Modifier.height(420.dp).verticalScroll(rememberScrollState())) {
+                    SelectionContainer {
+                        Text(ai, fontSize = 12.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { clipboard.setText(AnnotatedString(ai)); vm.clearAiResult() }) {
+                    Text("复制")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { vm.clearAiResult() }) { Text("关闭") }
+            },
+        )
+    }
+
+    // 重放结果
+    val rp = replayResult
+    if (rp != null) {
+        AlertDialog(
+            onDismissRequest = { vm.clearReplayResult() },
+            title = { Text(stringResource(R.string.capture_replay)) },
+            text = {
+                Column(Modifier.height(360.dp).verticalScroll(rememberScrollState())) {
+                    SelectionContainer {
+                        Text(rp, fontFamily = FontFamily.Monospace, fontSize = 11.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { vm.clearReplayResult() }) { Text("关闭") }
+            },
+            dismissButton = {},
+        )
+    }
+
+    // 提示
+    val msg = message
+    if (msg != null) {
+        AlertDialog(
+            onDismissRequest = { message = null },
+            title = { Text(stringResource(R.string.capture_title)) },
+            text = { Text(msg) },
+            confirmButton = { TextButton(onClick = { message = null }) { Text("知道了") } },
+            dismissButton = {},
+        )
+    }
+}

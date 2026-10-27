@@ -108,4 +108,12 @@
     <string name="ai_generate">AI 生成程序</string>
     <string name="ai_generate_hint">描述你想要的程序，AI 会写出完整可运行代码</string>
     <string name="action_generate">生成</string>
+    <string name="capture_title">抓包</string>
+    <string name="capture_start">开始抓包</string>
+    <string name="capture_export_ca">导出 CA</string>
+    <string name="capture_install_ca">装系统证书</string>
+    <string name="capture_set_proxy">设系统代理</string>
+    <string name="capture_clear_proxy">清代理</string>
+    <string name="capture_ai_analyze">AI 解析</string>
+    <string name="capture_replay">重放</string>
 </resources>

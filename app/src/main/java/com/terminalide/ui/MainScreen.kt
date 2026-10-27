@@ -1,5 +1,6 @@
 package com.terminalide.ui
 
+import com.terminalide.ui.components.CaptureSheet
 import com.terminalide.ui.components.OnboardingDialog
 import com.terminalide.ui.components.ExamplesSheet
 import com.terminalide.ui.components.TerminalSheet
@@ -102,6 +103,7 @@ fun MainScreen(
     aiVm: AiViewModel,
     replVm: ReplViewModel,
     termVm: TerminalViewModel,
+    captureVm: CaptureViewModel,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -113,6 +115,7 @@ fun MainScreen(
     var pendingFix by remember { mutableStateOf<String?>(null) }
     var showTerminal by remember { mutableStateOf(false) }
     var showExamples by remember { mutableStateOf(false) }
+    var showCapture by remember { mutableStateOf(false) }
     var showOnboarding by remember {
         mutableStateOf(!com.terminalide.TerminalIdeApp.instance.settings.onboardingSeen)
     }
@@ -142,6 +145,10 @@ fun MainScreen(
                     onOpenExamples = {
                         scope.launch { drawerState.close() }
                         showExamples = true
+                    },
+                    onOpenCapture = {
+                        scope.launch { drawerState.close() }
+                        showCapture = true
                     },
                 )
             }
@@ -457,6 +464,15 @@ fun MainScreen(
                 editorVm.updateCode(example.code)
                 showExamples = false
             })
+        }
+    }
+
+    if (showCapture) {
+        ModalBottomSheet(
+            onDismissRequest = { showCapture = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            CaptureSheet(captureVm)
         }
     }
 
