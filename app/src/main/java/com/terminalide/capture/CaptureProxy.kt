@@ -142,8 +142,9 @@ class CaptureProxy(
             raw.soTimeout = 20_000
             raw.connect(InetSocketAddress(host, port), 10_000)
             if (scheme == "https") {
-                (SSLSocketFactory.getDefault()
-                    .createSocket(raw, host, port, true) as SSLSocket).apply {
+                // 注意：SSLSocketFactory.getDefault() 的返回类型是 SocketFactory，必须强转
+                val factory = SSLSocketFactory.getDefault() as SSLSocketFactory
+                (factory.createSocket(raw, host, port, true) as SSLSocket).apply {
                     startHandshake()
                 }
             } else raw
