@@ -37,8 +37,7 @@ class CaptureViewModel : ViewModel() {
         .readTimeout(40, TimeUnit.SECONDS)
         .build()
 
-    private val _running = CaptureEngine.running
-    val running: StateFlow<Boolean> = _running.asStateFlow()
+    val running: StateFlow<Boolean> = CaptureEngine.running
 
     private val _status = MutableStateFlow("点「开始抓包」后，把系统代理或客户端代理指向 127.0.0.1:$PORT")
     val status: StateFlow<String> = _status.asStateFlow()
@@ -137,7 +136,6 @@ class CaptureViewModel : ViewModel() {
     /** 一键清代理：清系统代理 + 停止抓包。 */
     fun clearProxyAndStop(onDone: (String) -> Unit) {
         CaptureService.stop(app)
-        _running.value = false
         viewModelScope.launch(Dispatchers.IO) {
             runCatching { execRoot("settings put global http_proxy :0") }
             withContext(Dispatchers.Main) {
@@ -218,7 +216,7 @@ class CaptureViewModel : ViewModel() {
             val r = runCatching { execRoot(script) }
             val out = r.getOrNull().orEmpty()
             val msg = when {
-                out.contains("CA_OK_") -> "✅ CA 已装到系统级（$(out.substringAfter("CA_OK_").trim()) 个证书）\n重启相关 App 后生效；重启手机后需重装"
+                out.contains("CA_OK_") -> "✅ CA 已装到系统级（${out.substringAfter("CA_OK_").trim()} 个证书）\n重启相关 App 后生效；重启手机后需重装"
                 out.contains("NO_SOURCE") -> "❌ 找不到可用的系统证书源"
                 out.contains("COPY_FAIL") -> "❌ 复制失败，已中止（未挂载，系统证书未被破坏）"
                 else -> "⚠️ 安装失败：${r.exceptionOrNull()?.message ?: out.take(200)}"
