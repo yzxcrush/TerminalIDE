@@ -52,7 +52,7 @@ fun AppBlacklistDialog(
     // 勾选状态：该 App 的所有域名都在黑名单里 = 已勾选
     val selected = remember {
         apps.filter { (_, _) -> true }
-            .filter { (pkg, _) -> AppDomainMap.domainsOf(pkg).all { it in blacklist } }
+            .filter { (pkg, _) -> AppDomainMap.domainsOf(pkg).any { it in blacklist } }
             .map { it.first }
             .toMutableList()
     }
