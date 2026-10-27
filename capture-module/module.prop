@@ -1,0 +1,6 @@
+id=terminalide_ca
+name=Terminal IDE CA
+version=v1.0
+versionCode=1
+author=@惜白
+description=把 Terminal IDE 抓包的自签 CA 装成系统信任证书（Android 14+ 走 APEX 注入）
