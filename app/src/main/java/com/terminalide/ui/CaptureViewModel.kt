@@ -61,8 +61,8 @@ class CaptureViewModel : ViewModel() {
 
     val items: StateFlow<List<CaptureEntry>> = CaptureStore.items
 
-    init {
-        // 启动时检查：如果系统代理指向我们但抓包没开，自动清掉，避免断网
+    /** 打开抓包面板时才做残留代理检查（避免每次启动 App 都弹 root 授权）。 */
+    fun onSheetOpened() {
         viewModelScope.launch(Dispatchers.IO) { clearStaleProxyIfNeeded() }
     }
 

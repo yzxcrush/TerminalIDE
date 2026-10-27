@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,8 @@ fun CaptureSheet(vm: CaptureViewModel) {
     val analyzing by vm.analyzing.collectAsStateWithLifecycle()
     val aiResult by vm.aiResult.collectAsStateWithLifecycle()
     val replayResult by vm.replayResult.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) { vm.onSheetOpened() }
 
     var detail by remember { mutableStateOf<CaptureEntry?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
