@@ -65,7 +65,7 @@ class CaptureProxy(
             if (parts.size < 3) return
 
             if (parts[0].equals("CONNECT", true)) {
-                handleConnect(socket, output, parts[1])
+                handleConnect(socket, input, output, parts[1])
             } else {
                 // 普通 HTTP 代理：请求行是绝对 URI
                 val target = parts[1]
@@ -80,11 +80,17 @@ class CaptureProxy(
         }
     }
 
-    private fun handleConnect(client: Socket, output: OutputStream, target: String) {
+    private fun handleConnect(client: Socket, clientIn: InputStream, output: OutputStream, target: String) {
         val host = target.substringBeforeLast(':')
         val port = target.substringAfterLast(':').toIntOrNull() ?: 443
         output.write("HTTP/1.1 200 Connection Established\r\n\r\n".toByteArray())
         output.flush()
+
+        // 黑名单 / 非白名单 → 只做透明转发，不解密、不记录
+        if (!CaptureFilter.shouldCapture(host)) {
+            tunnel(clientIn, output, host, port)
+            return
+        }
 
         val sslContext = ca.serverContext(host)
         val tls = sslContext.socketFactory.createSocket(client, host, port, false) as SSLSocket
@@ -228,6 +234,46 @@ class CaptureProxy(
                 error = err.message ?: err.toString(),
             )
         )
+    }
+
+    /** 透明隧道：不解密、不记录，纯字节转发（用于黑名单）。 */
+    private fun tunnel(clientIn: InputStream, clientOut: OutputStream, host: String, port: Int) {
+        val server = try {
+            Socket().apply {
+                soTimeout = 20_000
+                connect(InetSocketAddress(host, port), 10_000)
+            }
+        } catch (_: Throwable) {
+            return
+        }
+        server.use { srv ->
+            val serverIn = srv.getInputStream()
+            val serverOut = srv.getOutputStream()
+            // 客户端 → 服务端
+            val up = Thread {
+                runCatching {
+                    val buf = ByteArray(8192)
+                    while (true) {
+                        val n = clientIn.read(buf)
+                        if (n < 0) break
+                        serverOut.write(buf, 0, n)
+                        serverOut.flush()
+                    }
+                }
+                runCatching { srv.close() }
+            }.apply { isDaemon = true; start() }
+            // 服务端 → 客户端
+            runCatching {
+                val buf = ByteArray(8192)
+                while (true) {
+                    val n = serverIn.read(buf)
+                    if (n < 0) break
+                    clientOut.write(buf, 0, n)
+                    clientOut.flush()
+                }
+            }
+            up.interrupt()
+        }
     }
 
     // ---------------- 流工具 ----------------

@@ -44,6 +44,16 @@ class SettingsStore(context: Context) {
         get() = sp.getBoolean(KEY_ONBOARDING, false)
         set(v) = sp.edit().putBoolean(KEY_ONBOARDING, v).apply()
 
+    /** 抓包黑名单（每行一个域名）。 */
+    var captureBlacklist: String
+        get() = sp.getString(KEY_CAPTURE_BLACK, "") ?: ""
+        set(v) = sp.edit().putString(KEY_CAPTURE_BLACK, v).apply()
+
+    /** 抓包白名单（非空时只抓白名单）。 */
+    var captureWhitelist: String
+        get() = sp.getString(KEY_CAPTURE_WHITE, "") ?: ""
+        set(v) = sp.edit().putString(KEY_CAPTURE_WHITE, v).apply()
+
     companion object {
         const val KEY_MIRROR = "global_mirror"
         const val KEY_AI_BACKEND = "ai_backend_kind"
@@ -51,6 +61,8 @@ class SettingsStore(context: Context) {
         const val KEY_API_BASE = "api_base_url"
         const val KEY_LANGUAGE = "app_language"
         const val KEY_ONBOARDING = "onboarding_seen"
+        const val KEY_CAPTURE_BLACK = "capture_blacklist"
+        const val KEY_CAPTURE_WHITE = "capture_whitelist"
         const val DEFAULT_API_BASE = "https://api.deepseek.com"
     }
 }

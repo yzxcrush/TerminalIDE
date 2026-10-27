@@ -120,4 +120,10 @@
     <string name="capture_hide_on">隐藏中</string>
     <string name="capture_clear_proxy_now">一键清代理</string>
     <string name="capture_privacy_tip">开启后 token/Cookie 会打码</string>
+    <string name="capture_filter">过滤规则</string>
+    <string name="capture_filter_title">抓包过滤规则</string>
+    <string name="capture_blacklist">黑名单（不抓取，仅透明转发，流量保持加密）</string>
+    <string name="capture_whitelist">白名单（非空时只抓这些域名）</string>
+    <string name="capture_filter_preset">加入敏感 App 预设</string>
+    <string name="capture_filter_tip">黑名单优先于白名单；支持子域名匹配</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -53,6 +54,7 @@ fun CaptureSheet(vm: CaptureViewModel) {
 
     LaunchedEffect(Unit) { vm.onSheetOpened() }
 
+    var showFilter by remember { mutableStateOf(false) }
     var detail by remember { mutableStateOf<CaptureEntry?>(null) }
     var message by remember { mutableStateOf<String?>(null) }
 
@@ -98,6 +100,7 @@ fun CaptureSheet(vm: CaptureViewModel) {
                     color = MaterialTheme.colorScheme.error,
                 )
             }
+            TextButton(onClick = { showFilter = true }) { Text(stringResource(R.string.capture_filter), fontSize = 11.sp) }
             TextButton(onClick = { vm.exportCa { message = it } }) { Text(stringResource(R.string.capture_export_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.installCaToSystem { message = it } }) { Text(stringResource(R.string.capture_install_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.setSystemProxy { message = it } }) { Text(stringResource(R.string.capture_set_proxy), fontSize = 11.sp) }
@@ -213,6 +216,61 @@ fun CaptureSheet(vm: CaptureViewModel) {
                 TextButton(onClick = { vm.clearReplayResult() }) { Text("关闭") }
             },
             dismissButton = {},
+        )
+    }
+
+    // 过滤规则
+    if (showFilter) {
+        val black by vm.blacklist.collectAsStateWithLifecycle()
+        val white by vm.whitelist.collectAsStateWithLifecycle()
+        var blackEdit by remember(black) { mutableStateOf(black) }
+        var whiteEdit by remember(white) { mutableStateOf(white) }
+        AlertDialog(
+            onDismissRequest = { showFilter = false },
+            title = { Text(stringResource(R.string.capture_filter_title)) },
+            text = {
+                Column(Modifier.height(420.dp).verticalScroll(rememberScrollState())) {
+                    Text(stringResource(R.string.capture_blacklist), style = MaterialTheme.typography.labelSmall)
+                    OutlinedTextField(
+                        value = blackEdit,
+                        onValueChange = { blackEdit = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 4,
+                        maxLines = 6,
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    )
+                    TextButton(onClick = {
+                        val preset = com.terminalide.capture.CaptureFilter.format(
+                            com.terminalide.capture.CaptureFilter.SENSITIVE_PRESET
+                        )
+                        blackEdit = if (blackEdit.isBlank()) preset else blackEdit.trimEnd() + "\n" + preset
+                    }) { Text(stringResource(R.string.capture_filter_preset), fontSize = 11.sp) }
+                    Spacer(Modifier.height(10.dp))
+                    Text(stringResource(R.string.capture_whitelist), style = MaterialTheme.typography.labelSmall)
+                    OutlinedTextField(
+                        value = whiteEdit,
+                        onValueChange = { whiteEdit = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5,
+                        textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                    )
+                    Text(
+                        stringResource(R.string.capture_filter_tip),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    vm.saveFilter(blackEdit, whiteEdit)
+                    showFilter = false
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFilter = false }) { Text(stringResource(R.string.action_cancel)) }
+            },
         )
     }
 

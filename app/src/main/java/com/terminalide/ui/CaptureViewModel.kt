@@ -59,6 +59,38 @@ class CaptureViewModel : ViewModel() {
         _hidden.value = !_hidden.value
     }
 
+    private val _blacklist = MutableStateFlow("")
+    val blacklist: StateFlow<String> = _blacklist.asStateFlow()
+
+    private val _whitelist = MutableStateFlow("")
+    val whitelist: StateFlow<String> = _whitelist.asStateFlow()
+
+    init {
+        // 默认把微信/QQ/支付宝/银联放黑名单，避免误抓
+        val defBlack = app.settings.captureBlacklist.ifBlank {
+            com.terminalide.capture.CaptureFilter.format(
+                com.terminalide.capture.CaptureFilter.SENSITIVE_PRESET
+            )
+        }
+        val white = app.settings.captureWhitelist
+        _blacklist.value = defBlack
+        _whitelist.value = white
+        com.terminalide.capture.CaptureFilter.blacklist = com.terminalide.capture.CaptureFilter.parse(defBlack)
+        com.terminalide.capture.CaptureFilter.whitelist = com.terminalide.capture.CaptureFilter.parse(white)
+        app.settings.captureBlacklist = defBlack
+        app.settings.captureWhitelist = white
+    }
+
+    /** 保存过滤规则。 */
+    fun saveFilter(black: String, white: String) {
+        _blacklist.value = black
+        _whitelist.value = white
+        com.terminalide.capture.CaptureFilter.blacklist = com.terminalide.capture.CaptureFilter.parse(black)
+        com.terminalide.capture.CaptureFilter.whitelist = com.terminalide.capture.CaptureFilter.parse(white)
+        app.settings.captureBlacklist = black
+        app.settings.captureWhitelist = white
+    }
+
     val items: StateFlow<List<CaptureEntry>> = CaptureStore.items
 
     /** 打开抓包面板时才做残留代理检查（避免每次启动 App 都弹 root 授权）。 */

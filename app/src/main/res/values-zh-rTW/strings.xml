@@ -120,4 +120,10 @@
     <string name="capture_hide_on">隱藏中</string>
     <string name="capture_clear_proxy_now">一鍵清代理</string>
     <string name="capture_privacy_tip">開啟後 token/Cookie 會打碼</string>
+    <string name="capture_filter">過濾規則</string>
+    <string name="capture_filter_title">抓包過濾規則</string>
+    <string name="capture_blacklist">黑名單（不抓取，僅透明轉發）</string>
+    <string name="capture_whitelist">白名單（非空時只抓這些網域）</string>
+    <string name="capture_filter_preset">加入敏感 App 預設</string>
+    <string name="capture_filter_tip">黑名單優先；支援子網域</string>
 </resources>

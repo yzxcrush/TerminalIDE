@@ -120,4 +120,10 @@
     <string name="capture_hide_on">非表示中</string>
     <string name="capture_clear_proxy_now">プロキシ解除</string>
     <string name="capture_privacy_tip">有効にすると token/Cookie を伏せます</string>
+    <string name="capture_filter">フィルタ</string>
+    <string name="capture_filter_title">キャプチャフィルタ</string>
+    <string name="capture_blacklist">ブラックリスト（キャプチャせず転送のみ）</string>
+    <string name="capture_whitelist">ホワイトリスト（設定時はこのドメインのみ）</string>
+    <string name="capture_filter_preset">機密アプリのプリセットを追加</string>
+    <string name="capture_filter_tip">ブラックリスト優先／サブドメイン対応</string>
 </resources>
