@@ -134,4 +134,7 @@
     <string name="capture_edit_replay">编辑重放</string>
     <string name="capture_ai_draft">AI 草拟</string>
     <string name="capture_send">发送</string>
+    <string name="capture_gen_client">生成客户端</string>
+    <string name="capture_gen_done">AI 生成的 API 客户端</string>
+    <string name="capture_insert_editor">插入编辑器</string>
 </resources>

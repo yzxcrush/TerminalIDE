@@ -70,7 +70,7 @@ private fun CaptureRow(vm: CaptureViewModel, rawEntry: CaptureEntry, onClick: (C
 
 /** 抓包面板：启停、CA/代理设置、请求列表、详情、AI 解析与重放。 */
 @Composable
-fun CaptureSheet(vm: CaptureViewModel) {
+fun CaptureSheet(vm: CaptureViewModel, onInsertCode: (String) -> Unit = {}) {
     val running by vm.running.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
     val items by vm.items.collectAsStateWithLifecycle()
@@ -131,6 +131,13 @@ fun CaptureSheet(vm: CaptureViewModel) {
                 )
             }
             TextButton(onClick = { showFilter = true }) { Text(stringResource(R.string.capture_filter), fontSize = 11.sp) }
+            TextButton(onClick = { vm.generateApiClient() }) {
+                Text(
+                    if (analyzing) "生成中…" else stringResource(R.string.capture_gen_client),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
             TextButton(onClick = { showAppList = true }) { Text(stringResource(R.string.capture_pick_apps), fontSize = 11.sp) }
             TextButton(onClick = { vm.exportCa { message = it } }) { Text(stringResource(R.string.capture_export_ca), fontSize = 11.sp) }
             TextButton(onClick = { vm.installCaToSystem { message = it } }) { Text(stringResource(R.string.capture_install_ca), fontSize = 11.sp) }
@@ -262,6 +269,34 @@ fun CaptureSheet(vm: CaptureViewModel) {
             },
             dismissButton = {
                 TextButton(onClick = { vm.closeDraft() }) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
+
+    // AI 生成的 API 客户端
+    val gen = vm.generatedClient.collectAsStateWithLifecycle().value
+    if (gen != null) {
+        val clipboard2 = LocalClipboardManager.current
+        AlertDialog(
+            onDismissRequest = { vm.closeGeneratedClient() },
+            title = { Text(stringResource(R.string.capture_gen_done)) },
+            text = {
+                Column(Modifier.height(440.dp).verticalScroll(rememberScrollState())) {
+                    SelectionContainer {
+                        Text(gen, fontFamily = FontFamily.Monospace, fontSize = 10.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    onInsertCode(gen)
+                    vm.closeGeneratedClient()
+                }) { Text(stringResource(R.string.capture_insert_editor)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { clipboard2.setText(AnnotatedString(gen)); vm.closeGeneratedClient() }) {
+                    Text("复制")
+                }
             },
         )
     }

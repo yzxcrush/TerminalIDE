@@ -133,4 +133,7 @@
     <string name="capture_edit_replay">編集して再送</string>
     <string name="capture_ai_draft">AI 下書き</string>
     <string name="capture_send">送信</string>
+    <string name="capture_gen_client">クライアント生成</string>
+    <string name="capture_gen_done">AI 生成の API クライアント</string>
+    <string name="capture_insert_editor">エディタに挿入</string>
 </resources>

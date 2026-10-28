@@ -133,4 +133,7 @@
     <string name="capture_edit_replay">Edit &amp; replay</string>
     <string name="capture_ai_draft">AI draft</string>
     <string name="capture_send">Send</string>
+    <string name="capture_gen_client">Gen client</string>
+    <string name="capture_gen_done">AI-generated API client</string>
+    <string name="capture_insert_editor">Insert into editor</string>
 </resources>

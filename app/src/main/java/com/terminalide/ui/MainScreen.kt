@@ -472,7 +472,7 @@ fun MainScreen(
             onDismissRequest = { showCapture = false },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
-            CaptureSheet(captureVm)
+            CaptureSheet(captureVm) { code -> editorVm.updateCode(code) }
         }
     }
 

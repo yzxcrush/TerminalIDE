@@ -437,6 +437,46 @@ class CaptureViewModel : ViewModel() {
         }
     }
 
+    // ---------- 生成 API 客户端（抓包 -> 代码）----------
+
+    private val _generatedClient = MutableStateFlow<String?>(null)
+    val generatedClient: StateFlow<String?> = _generatedClient.asStateFlow()
+
+    /** 把已抓到的请求交给 AI，生成一个可直接用的 Python 客户端类。 */
+    fun generateApiClient() {
+        val list = CaptureStore.items.value
+        if (list.isEmpty()) {
+            _status.value = "先抓一些请求再生成客户端"
+            return
+        }
+        if (_analyzing.value) return
+        _analyzing.value = true
+        _generatedClient.value = null
+        viewModelScope.launch {
+            // 按 host 去重，最多取 20 条，避免 prompt 太长
+            val sampled = list
+                .distinctBy { "${it.method} ${it.host}${it.url.substringAfter(it.host)}" }
+                .take(20)
+            val prompt = buildString {
+                append("下面是我抓到的若干 HTTP 请求（已脱敏）。请据此生成一个**完整的 Python 客户端类**，要求：\n")
+                append("1. 用 requests 库，封装成 class，每个接口一个方法\n")
+                append("2. token / cookie 等认证信息在构造函数里保存，请求时自动带上\n")
+                append("3. 方法名用有意义的英文；参数带类型注释；返回 json()\n")
+                append("4. 只输出 Python 代码，不要任何解释文字\n\n")
+                append(sampled.joinToString("\n\n=====\n\n") { maskEntry(it).toPromptText(1200) })
+            }
+            val code = runCatching {
+                app.aiService.chat(prompt, emptyList(), Language.PYTHON, "")
+            }.getOrElse { "⚠️ 生成失败：${it.message ?: it}" }
+            _generatedClient.value = code
+            _analyzing.value = false
+        }
+    }
+
+    fun closeGeneratedClient() {
+        _generatedClient.value = null
+    }
+
     // ---------- 脱敏 ----------
 
     private val SENSITIVE = setOf(
