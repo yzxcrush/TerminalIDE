@@ -50,8 +50,9 @@ class CaptureBubble(private val ctx: Context) {
             android.graphics.PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            x = ctx.resources.displayMetrics.widthPixels - 160
-            y = ctx.resources.displayMetrics.heightPixels / 3
+            val dm = ctx.resources.displayMetrics
+            x = dm.widthPixels - (108 * dm.density).toInt()
+            y = dm.heightPixels / 3
         }
         runCatching {
             wm.addView(v, lp)
@@ -92,7 +93,16 @@ class CaptureBubble(private val ctx: Context) {
             set(value) { field = value; invalidate() }
 
         private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+        private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1.2f * resources.displayMetrics.density
+            color = 0xFF4FC3F7.toInt()
+        }
+        private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFF4FC3F7.toInt() }
+        private val numPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = 0xFF4FC3F7.toInt()
+            isFakeBoldText = true
+        }
         private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             textSize = 12f * resources.displayMetrics.scaledDensity
@@ -118,17 +128,17 @@ class CaptureBubble(private val ctx: Context) {
         private var dragging = false
         private var longPressed = false
 
-        private val widthPx = (128 * resources.displayMetrics.density).toInt()
-        private val heightPx = (48 * resources.displayMetrics.density).toInt()
+        private val widthPx = (104 * resources.displayMetrics.density).toInt()
+        private val heightPx = (36 * resources.displayMetrics.density).toInt()
 
         init {
             bgPaint.shader = LinearGradient(
-                0f, 0f, widthPx.toFloat(), heightPx.toFloat(),
-                intArrayOf(0xFF4FC3F7.toInt(), 0xFF1E88E5.toInt(), 0xFF6A5AE0.toInt()),
-                floatArrayOf(0f, 0.55f, 1f),
+                0f, 0f, 0f, heightPx.toFloat(),
+                intArrayOf(0xF51B2438.toInt(), 0xF50D1522.toInt()),
+                null,
                 Shader.TileMode.CLAMP,
             )
-            bgPaint.setShadowLayer(8f * resources.displayMetrics.density, 0f, 3f, 0x55000000)
+            bgPaint.setShadowLayer(10f * resources.displayMetrics.density, 0f, 4f, 0x66000000)
             setLayerType(LAYER_TYPE_SOFTWARE, null)
             pulseAnim.start()
         }
@@ -143,24 +153,35 @@ class CaptureBubble(private val ctx: Context) {
         }
 
         override fun onDraw(canvas: Canvas) {
-            rect.set(4f, 4f, width - 4f, height - 4f)
-            val r = (height - 8f) / 2f
+            val d = resources.displayMetrics.density
+            rect.set(3f * d, 3f * d, width - 3f * d, height - 3f * d)
+            val r = (height - 6f * d) / 2f
             canvas.drawRoundRect(rect, r, r, bgPaint)
 
-            // 脉冲光点
-            val cx = 22f * resources.displayMetrics.density
+            // 蓝色描边
+            borderPaint.alpha = 110
+            canvas.drawRoundRect(rect, r, r, borderPaint)
+
+            // 脉冲光点（蓝色）
+            val cx = 20f * d
             val cy = height / 2f
-            val base = 5f * resources.displayMetrics.density
+            val base = 3.6f * d
             dotPaint.alpha = 255
             canvas.drawCircle(cx, cy, base, dotPaint)
-            dotPaint.alpha = (90 * (1f - pulsePhase)).toInt()
-            canvas.drawCircle(cx, cy, base * (1.8f + pulsePhase * 1.6f), dotPaint)
+            dotPaint.alpha = (70 * (1f - pulsePhase)).toInt()
+            canvas.drawCircle(cx, cy, base * (2.2f + pulsePhase * 2.4f), dotPaint)
             dotPaint.alpha = 255
 
             // 文案
-            val tx = cx + 20f * resources.displayMetrics.density
-            canvas.drawText("抓包中", tx, cy - 2f, textPaint)
-            canvas.drawText("$count 条", tx, cy + 14f * resources.displayMetrics.density, subPaint)
+            val tx = cx + 14f * d
+            textPaint.textSize = 10.5f * resources.displayMetrics.scaledDensity
+            canvas.drawText("抓包中", tx, cy + 3.8f * d, textPaint)
+
+            // 计数（右侧蓝色加粗）
+            val cnt = if (count > 99) "99+" else "$count"
+            numPaint.textSize = 13f * resources.displayMetrics.scaledDensity
+            val nw = numPaint.measureText(cnt)
+            canvas.drawText(cnt, width - 12f * d - nw, cy + 4.5f * d, numPaint)
         }
 
         @SuppressLint("ClickableViewAccessibility")
