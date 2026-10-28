@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import androidx.core.app.NotificationCompat
 import com.terminalide.MainActivity
 import com.terminalide.R
@@ -21,6 +22,28 @@ import com.terminalide.R
  */
 class CaptureService : Service() {
 
+    /** 抓包期间持有 CPU 唤醒锁，避免进程被冻结导致代理「假死」。 */
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
+
+    private fun acquireWakeLock() {
+        runCatching {
+            val pm = getSystemService(PowerManager::class.java)
+            wakeLock = pm.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "TerminalIDE::CaptureProxy",
+            ).apply {
+                setReferenceCounted(false)
+                acquire(2 * 60 * 60 * 1000L) // 最长 2 小时，防止忘记释放
+            }
+        }
+    }
+
+    private fun releaseWakeLock() {
+        runCatching { if (wakeLock?.isHeld == true) wakeLock?.release() }
+        wakeLock = null
+    }
+
+
     override fun onCreate() {
         super.onCreate()
         createChannel()
@@ -31,6 +54,7 @@ class CaptureService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+        acquireWakeLock()
         val ok = CaptureEngine.start(this)
         try {
             startForeground(NOTIF_ID, buildNotification(ok))
@@ -41,6 +65,7 @@ class CaptureService : Service() {
     }
 
     override fun onDestroy() {
+        releaseWakeLock()
         CaptureEngine.stop()
         // 关键兜底：服务结束就把系统代理清掉（放子线程，避免阻塞主线程）
         Thread {

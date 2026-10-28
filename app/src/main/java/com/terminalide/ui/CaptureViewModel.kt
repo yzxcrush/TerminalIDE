@@ -10,6 +10,7 @@ import com.terminalide.capture.CaptureService
 import com.terminalide.capture.CaptureEntry
 import com.terminalide.capture.CaptureProxy
 import com.terminalide.capture.CaptureStore
+import com.terminalide.capture.CaInstaller
 import com.terminalide.capture.CaManager
 import com.terminalide.core.Language
 import kotlinx.coroutines.Dispatchers
@@ -203,6 +204,23 @@ class CaptureViewModel : ViewModel() {
 
     val items: StateFlow<List<CaptureEntry>> = CaptureStore.items
 
+    /** 代理健康检查：系统代理还指着我们但代理没跑时自动清掉（防止断网）。 */
+    private fun startHealthCheck() {
+        viewModelScope.launch(Dispatchers.IO) {
+            while (true) {
+                kotlinx.coroutines.delay(20_000)
+                // 代理正常运行时不做任何事，避免频繁调用 su
+                if (CaptureEngine.isRunning()) continue
+                runCatching {
+                    val out = execRoot("settings get global http_proxy").trim()
+                    if (out.contains("8888") && !CaptureEngine.isRunning()) {
+                        execRoot("settings put global http_proxy :0")
+                    }
+                }
+            }
+        }
+    }
+
     init {
         // 启动自检：如果系统代理还指着我们但抓包没开，自动清掉（防止 App 被杀后断网）
         // 带 10 秒超时，避免 root 未授权时卡住
@@ -211,6 +229,7 @@ class CaptureViewModel : ViewModel() {
                 runCatching { clearStaleProxyIfNeeded() }
             }
         }
+        startHealthCheck()
     }
 
     /** 打开抓包面板时才做残留代理检查（避免每次启动 App 都弹 root 授权）。 */
@@ -287,49 +306,15 @@ class CaptureViewModel : ViewModel() {
     /** 用 root 安装 CA 到系统级（Android 14+ 走 APEX 注入）。 */
     fun installCaToSystem(onDone: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            val der = ca.caDer()
-            if (der == null) {
-                withContext(Dispatchers.Main) { onDone("CA 未生成") }
-                return@launch
-            }
-            val hash = subjectHash(der)
-            val pem = buildPem(der)
-            val tmp = File(app.cacheDir, "ca-install").apply { mkdirs() }
-            val pemFile = File(tmp, "$hash.0").apply { writeText(pem) }
-            // 完整流程：选证书源 -> tmpfs -> 复制 -> 校验 -> 挂载到 APEX 各命名空间
-            val script = """
-                SRC=""
-                if [ -d /apex/com.android.conscrypt@360499999/cacerts ] && [ ${'$'}(ls /apex/com.android.conscrypt@360499999/cacerts/*.0 2>/dev/null | wc -l) -gt 50 ]; then
-                  SRC=/apex/com.android.conscrypt@360499999/cacerts
-                elif [ ${'$'}(ls /apex/com.android.conscrypt/cacerts/*.0 2>/dev/null | wc -l) -gt 50 ]; then
-                  SRC=/apex/com.android.conscrypt/cacerts
-                fi
-                [ -z "${'$'}SRC" ] && { echo "NO_SOURCE"; exit 1; }
-                T=/data/local/tmp/terminalide-ca-app
-                umount ${'$'}T 2>/dev/null; rm -rf ${'$'}T; mkdir -p ${'$'}T
-                mount -t tmpfs tmpfs ${'$'}T || { echo "MOUNT_FAIL"; exit 1; }
-                cp -a ${'$'}SRC/*.0 ${'$'}T/ 2>/dev/null
-                cp -f "${pemFile.absolutePath}" ${'$'}T/
-                CNT=${'$'}(ls ${'$'}T/*.0 2>/dev/null | wc -l)
-                [ "${'$'}CNT" -lt 50 ] && { umount ${'$'}T 2>/dev/null; echo "COPY_FAIL"; exit 1; }
-                chmod 644 ${'$'}T/* 2>/dev/null
-                chcon -R u:object_r:system_security_cacerts_file:s0 ${'$'}T 2>/dev/null
-                mount --bind ${'$'}T /apex/com.android.conscrypt/cacerts 2>/dev/null
-                nsenter --mount=/proc/1/ns/mnt -- mount --bind ${'$'}T /apex/com.android.conscrypt/cacerts 2>/dev/null
-                for z in zygote zygote64; do
-                  for pid in ${'$'}(pidof ${'$'}z 2>/dev/null); do
-                    nsenter --mount=/proc/${'$'}pid/ns/mnt -- mount --bind ${'$'}T /apex/com.android.conscrypt/cacerts 2>/dev/null
-                  done
-                done
-                ls /apex/com.android.conscrypt/cacerts/$hash.0 && echo "CA_OK_${'$'}CNT"
-            """.trimIndent()
-            val r = runCatching { execRoot(script) }
-            val out = r.getOrNull().orEmpty()
+            val caMgr = ca
+            caMgr.ensure()
+            val out = CaInstaller.install(app, caMgr)
             val msg = when {
-                out.contains("CA_OK_") -> "✅ CA 已装到系统级（${out.substringAfter("CA_OK_").trim()} 个证书）\n重启相关 App 后生效；重启手机后需重装"
+                out.contains("CA_OK") -> "✅ CA 已装到系统级\n重启相关 App 后生效；重启手机后开机会自动重装"
                 out.contains("NO_SOURCE") -> "❌ 找不到可用的系统证书源"
-                out.contains("COPY_FAIL") -> "❌ 复制失败，已中止（未挂载，系统证书未被破坏）"
-                else -> "⚠️ 安装失败：${r.exceptionOrNull()?.message ?: out.take(200)}"
+                out.contains("INJECT_FAIL") -> "❌ 注入失败，已中止（系统证书未被破坏）"
+                out.contains("EXEC_FAIL") -> "❌ root 执行失败：${out.take(150)}"
+                else -> "⚠️ 安装结果：${out.take(200)}"
             }
             withContext(Dispatchers.Main) { onDone(msg) }
         }

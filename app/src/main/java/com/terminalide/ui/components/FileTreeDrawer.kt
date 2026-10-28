@@ -1,5 +1,6 @@
 package com.terminalide.ui.components
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Radar
@@ -82,26 +83,28 @@ fun FileTreeDrawer(
             Text(
                 stringResource(R.string.files_title),
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            IconButton(onClick = onOpenExamples) {
-                Icon(Icons.Filled.MenuBook, contentDescription = stringResource(R.string.examples_title))
+            IconButton(onClick = onOpenExamples, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Filled.MenuBook, contentDescription = stringResource(R.string.examples_title, modifier = Modifier.size(20.dp)))
             }
-            IconButton(onClick = onOpenCapture) {
-                Icon(Icons.Filled.Radar, contentDescription = stringResource(R.string.capture_title))
+            IconButton(onClick = onOpenCapture, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Filled.Radar, contentDescription = stringResource(R.string.capture_title, modifier = Modifier.size(20.dp)))
             }
-            IconButton(onClick = onOpenTools) {
-                Icon(Icons.Filled.Build, contentDescription = stringResource(R.string.tools_title))
+            IconButton(onClick = onOpenTools, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Filled.Build, contentDescription = stringResource(R.string.tools_title, modifier = Modifier.size(20.dp)))
             }
-            IconButton(onClick = onOpenAutomation) {
-                Icon(Icons.Filled.Schedule, contentDescription = stringResource(R.string.automation_title))
+            IconButton(onClick = onOpenAutomation, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Filled.Schedule, contentDescription = stringResource(R.string.automation_title, modifier = Modifier.size(20.dp)))
             }
-            IconButton(onClick = onRefresh) {
-                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh))
+            IconButton(onClick = onRefresh, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh, modifier = Modifier.size(20.dp)))
             }
             IconButton(onClick = { showNewDialog = true }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.files_new))
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.files_new, modifier = Modifier.size(20.dp)))
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)

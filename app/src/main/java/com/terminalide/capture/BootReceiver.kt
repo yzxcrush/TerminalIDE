@@ -13,6 +13,16 @@ class BootReceiver : BroadcastReceiver() {
         // 开机后恢复自动化任务的闹钟
         runCatching { com.terminalide.automation.AutomationScheduler.rescheduleAll(context) }
 
+        // 开机后自动把 CA 注入系统证书库（不依赖 KernelSU 模块）
+        runCatching {
+            val app = com.terminalide.TerminalIdeApp.instance
+            val ca = com.terminalide.capture.CaManager(app)
+            ca.ensure()
+            if (!CaInstaller.isInstalled(app, ca)) {
+                CaInstaller.install(app, ca)
+            }
+        }
+
         Thread {
             runCatching {
                 val out = ProcessBuilder("su", "-c", "settings get global http_proxy")
