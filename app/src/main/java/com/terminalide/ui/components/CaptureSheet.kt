@@ -71,6 +71,7 @@ private fun CaptureRow(vm: CaptureViewModel, rawEntry: CaptureEntry, onClick: (C
 /** 抓包面板：启停、CA/代理设置、请求列表、详情、AI 解析与重放。 */
 @Composable
 fun CaptureSheet(vm: CaptureViewModel, onInsertCode: (String) -> Unit = {}) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val running by vm.running.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
     val items by vm.items.collectAsStateWithLifecycle()
@@ -131,6 +132,14 @@ fun CaptureSheet(vm: CaptureViewModel, onInsertCode: (String) -> Unit = {}) {
                 )
             }
             TextButton(onClick = { showFilter = true }) { Text(stringResource(R.string.capture_filter), fontSize = 11.sp) }
+            TextButton(onClick = {
+                if (!com.terminalide.capture.CaptureBubble.canOverlay(context)) {
+                    com.terminalide.capture.CaptureBubble.requestPermission(context)
+                    message = context.getString(R.string.capture_overlay_need)
+                } else {
+                    message = "✅ 悬浮窗权限已开启\n开始抓包后会显示悬浮胶囊"
+                }
+            }) { Text(stringResource(R.string.capture_overlay), fontSize = 11.sp) }
             TextButton(onClick = { vm.generateApiClient() }) {
                 Text(
                     if (analyzing) "生成中…" else stringResource(R.string.capture_gen_client),

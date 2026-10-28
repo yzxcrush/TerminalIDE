@@ -22,6 +22,8 @@ import com.terminalide.R
  */
 class CaptureService : Service() {
 
+    private var bubble: CaptureBubble? = null
+
     /** 抓包期间持有 CPU 唤醒锁，避免进程被冻结导致代理「假死」。 */
     private var wakeLock: android.os.PowerManager.WakeLock? = null
 
@@ -56,6 +58,12 @@ class CaptureService : Service() {
         }
         acquireWakeLock()
         val ok = CaptureEngine.start(this)
+        // 悬浮胶囊：让 App 保持"可见"，避免被系统后台限制
+        runCatching {
+            if (CaptureBubble.canOverlay(this)) {
+                bubble = CaptureBubble(this).also { it.show() }
+            }
+        }
         try {
             startForeground(NOTIF_ID, buildNotification(ok))
         } catch (_: Throwable) {
@@ -65,6 +73,8 @@ class CaptureService : Service() {
     }
 
     override fun onDestroy() {
+        runCatching { bubble?.hide() }
+        bubble = null
         releaseWakeLock()
         CaptureEngine.stop()
         // 关键兜底：服务结束就把系统代理清掉（放子线程，避免阻塞主线程）

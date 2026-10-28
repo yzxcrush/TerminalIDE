@@ -142,4 +142,6 @@
     <string name="automation_title">自動化</string>
     <string name="automation_add">新增任務</string>
     <string name="automation_empty">還沒有自動化任務</string>
+    <string name="capture_overlay">懸浮窗</string>
+    <string name="capture_overlay_need">需要「顯示在其他應用上層」權限</string>
 </resources>

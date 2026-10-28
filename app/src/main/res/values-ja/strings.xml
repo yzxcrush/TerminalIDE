@@ -142,4 +142,6 @@
     <string name="automation_title">自動化</string>
     <string name="automation_add">新規タスク</string>
     <string name="automation_empty">自動化タスクはまだありません</string>
+    <string name="capture_overlay">オーバーレイ</string>
+    <string name="capture_overlay_need">「他のアプリの上に表示」権限が必要です</string>
 </resources>

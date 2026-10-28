@@ -144,4 +144,6 @@
     <string name="automation_add">新建任务</string>
     <string name="automation_empty">还没有自动化任务
 新建一个，让它定时帮你跑脚本</string>
+    <string name="capture_overlay">悬浮窗</string>
+    <string name="capture_overlay_need">需要「显示在其他应用上层」权限才能后台抓包</string>
 </resources>
