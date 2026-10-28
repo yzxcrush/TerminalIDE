@@ -89,22 +89,22 @@ fun FileTreeDrawer(
                 color = MaterialTheme.colorScheme.onSurface,
             )
             IconButton(onClick = onOpenExamples, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Filled.MenuBook, contentDescription = stringResource(R.string.examples_title, modifier = Modifier.size(20.dp)))
+                Icon(Icons.Filled.MenuBook, contentDescription = stringResource(R.string.examples_title), modifier = Modifier.size(20.dp))
             }
             IconButton(onClick = onOpenCapture, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Filled.Radar, contentDescription = stringResource(R.string.capture_title, modifier = Modifier.size(20.dp)))
+                Icon(Icons.Filled.Radar, contentDescription = stringResource(R.string.capture_title), modifier = Modifier.size(20.dp))
             }
             IconButton(onClick = onOpenTools, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Filled.Build, contentDescription = stringResource(R.string.tools_title, modifier = Modifier.size(20.dp)))
+                Icon(Icons.Filled.Build, contentDescription = stringResource(R.string.tools_title), modifier = Modifier.size(20.dp))
             }
             IconButton(onClick = onOpenAutomation, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Filled.Schedule, contentDescription = stringResource(R.string.automation_title, modifier = Modifier.size(20.dp)))
+                Icon(Icons.Filled.Schedule, contentDescription = stringResource(R.string.automation_title), modifier = Modifier.size(20.dp))
             }
             IconButton(onClick = onRefresh, modifier = Modifier.size(36.dp)) {
-                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh, modifier = Modifier.size(20.dp)))
+                Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh), modifier = Modifier.size(20.dp))
             }
-            IconButton(onClick = { showNewDialog = true }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.files_new, modifier = Modifier.size(20.dp)))
+            IconButton(onClick = { showNewDialog = true }, modifier = Modifier.size(36.dp)) {
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.files_new), modifier = Modifier.size(20.dp))
             }
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
