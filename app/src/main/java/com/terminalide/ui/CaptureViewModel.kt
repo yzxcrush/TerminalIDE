@@ -214,7 +214,7 @@ class CaptureViewModel : ViewModel() {
                 runCatching {
                     val out = execRoot("settings get global http_proxy").trim()
                     if (out.contains("8888") && !CaptureEngine.isRunning()) {
-                        execRoot("settings put global http_proxy :0")
+                        execRoot("settings delete global http_proxy")
                     }
                 }
             }
@@ -241,7 +241,7 @@ class CaptureViewModel : ViewModel() {
         runCatching {
             val out = execRoot("settings get global http_proxy").trim()
             if (out.contains("8888") && !CaptureEngine.isRunning()) {
-                execRoot("settings put global http_proxy :0")
+                execRoot("settings delete global http_proxy")
             }
         }
     }
@@ -257,7 +257,7 @@ class CaptureViewModel : ViewModel() {
         CaptureService.stop(app)
         // 服务 onDestroy 也会清，这里再兜底一次
         viewModelScope.launch(Dispatchers.IO) {
-            runCatching { execRoot("settings put global http_proxy :0") }
+            runCatching { execRoot("settings delete global http_proxy") }
         }
         _status.value = "已停止（系统代理已自动清除）"
     }
@@ -266,7 +266,7 @@ class CaptureViewModel : ViewModel() {
     fun clearProxyAndStop(onDone: (String) -> Unit) {
         CaptureService.stop(app)
         viewModelScope.launch(Dispatchers.IO) {
-            runCatching { execRoot("settings put global http_proxy :0") }
+            runCatching { execRoot("settings delete global http_proxy") }
             withContext(Dispatchers.Main) {
                 onDone("✅ 系统代理已清除，网络恢复直连\n抓包代理已停止")
             }
@@ -336,7 +336,7 @@ class CaptureViewModel : ViewModel() {
     fun clearSystemProxy(onDone: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
-                execRoot("settings put global http_proxy :0; settings delete global http_proxy")
+                execRoot("settings delete global http_proxy")
             }
             withContext(Dispatchers.Main) { onDone("已清除系统代理") }
         }
@@ -418,7 +418,7 @@ class CaptureViewModel : ViewModel() {
     override fun onCleared() {
         // 代理由前台服务持有，这里只兜底清理可能残留的系统代理
         if (!CaptureEngine.isRunning()) {
-            runCatching { execRoot("settings put global http_proxy :0") }
+            runCatching { execRoot("settings delete global http_proxy") }
         }
     }
 

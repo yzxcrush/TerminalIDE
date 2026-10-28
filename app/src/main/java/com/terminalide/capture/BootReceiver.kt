@@ -28,7 +28,7 @@ class BootReceiver : BroadcastReceiver() {
                 val out = ProcessBuilder("su", "-c", "settings get global http_proxy")
                     .start().apply { waitFor() }.inputStream.bufferedReader().readText().trim()
                 if (out.contains("8888") && !CaptureEngine.isRunning()) {
-                    ProcessBuilder("su", "-c", "settings put global http_proxy :0")
+                    ProcessBuilder("su", "-c", "settings delete global http_proxy")
                         .start().waitFor()
                 }
             }
