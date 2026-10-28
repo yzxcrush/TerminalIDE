@@ -104,6 +104,37 @@ class PythonBackend(private val sandbox: Sandbox) : LanguageBackend {
         }
     }
 
+    /** 扫描工作区里的顶层函数，返回 JSON 描述（脚本变 App）。 */
+    suspend fun listTools(): String = withContext(Dispatchers.IO) {
+        runCatching {
+            Python.getInstance().getModule("ide_runner")
+                .callAttr("list_tools", sandbox.languageDir("py").absolutePath)
+                .toString()
+        }.getOrElse { "[]" }
+    }
+
+    /** 调用某个工具函数，返回 stdout + 返回值。 */
+    suspend fun runTool(file: String, func: String, kwargsJson: String): String =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                Python.getInstance().getModule("ide_runner")
+                    .callAttr(
+                        "run_tool",
+                        sandbox.languageDir("py").absolutePath,
+                        file, func, kwargsJson,
+                    ).toString()
+            }.getOrElse { "错误：${it.message ?: it}" }
+        }
+
+    /** 后台运行整个脚本文件（自动化任务用）。 */
+    suspend fun runScript(file: String): String = withContext(Dispatchers.IO) {
+        runCatching {
+            Python.getInstance().getModule("ide_runner")
+                .callAttr("run_script", sandbox.languageDir("py").absolutePath, file)
+                .toString()
+        }.getOrElse { "错误：${it.message ?: it}" }
+    }
+
     /** 清空 REPL 命名空间。 */
     suspend fun replReset() = withContext(Dispatchers.IO) {
         runCatching {

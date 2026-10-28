@@ -136,4 +136,10 @@
     <string name="capture_gen_client">Gen client</string>
     <string name="capture_gen_done">AI-generated API client</string>
     <string name="capture_insert_editor">Insert into editor</string>
+    <string name="tools_title">Tools</string>
+    <string name="tools_empty">Write a top-level function to turn it into a tool</string>
+    <string name="tools_run">Run</string>
+    <string name="automation_title">Automation</string>
+    <string name="automation_add">New task</string>
+    <string name="automation_empty">No automation tasks yet</string>
 </resources>

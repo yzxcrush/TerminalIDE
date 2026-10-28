@@ -87,5 +87,9 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".automation.AutomationReceiver"
+            android:exported="false" />
+
     </application>
 </manifest>

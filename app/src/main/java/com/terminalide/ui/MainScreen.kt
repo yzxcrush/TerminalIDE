@@ -1,5 +1,7 @@
 package com.terminalide.ui
 
+import com.terminalide.ui.components.AutomationSheet
+import com.terminalide.ui.components.ToolsSheet
 import com.terminalide.ui.components.CaptureSheet
 import com.terminalide.ui.components.OnboardingDialog
 import com.terminalide.ui.components.ExamplesSheet
@@ -104,6 +106,8 @@ fun MainScreen(
     replVm: ReplViewModel,
     termVm: TerminalViewModel,
     captureVm: CaptureViewModel,
+    toolsVm: ToolsViewModel,
+    automationVm: AutomationViewModel,
 ) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -116,6 +120,8 @@ fun MainScreen(
     var showTerminal by remember { mutableStateOf(false) }
     var showExamples by remember { mutableStateOf(false) }
     var showCapture by remember { mutableStateOf(false) }
+    var showTools by remember { mutableStateOf(false) }
+    var showAutomation by remember { mutableStateOf(false) }
     var showOnboarding by remember {
         mutableStateOf(!com.terminalide.TerminalIdeApp.instance.settings.onboardingSeen)
     }
@@ -149,6 +155,14 @@ fun MainScreen(
                     onOpenCapture = {
                         scope.launch { drawerState.close() }
                         showCapture = true
+                    },
+                    onOpenTools = {
+                        scope.launch { drawerState.close() }
+                        showTools = true
+                    },
+                    onOpenAutomation = {
+                        scope.launch { drawerState.close() }
+                        showAutomation = true
                     },
                 )
             }
@@ -473,6 +487,24 @@ fun MainScreen(
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             CaptureSheet(captureVm) { code -> editorVm.updateCode(code) }
+        }
+    }
+
+    if (showTools) {
+        ModalBottomSheet(
+            onDismissRequest = { showTools = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            ToolsSheet(toolsVm)
+        }
+    }
+
+    if (showAutomation) {
+        ModalBottomSheet(
+            onDismissRequest = { showAutomation = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            AutomationSheet(automationVm)
         }
     }
 

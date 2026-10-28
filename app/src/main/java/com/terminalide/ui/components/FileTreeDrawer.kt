@@ -1,5 +1,7 @@
 package com.terminalide.ui.components
 
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.foundation.combinedClickable
@@ -58,6 +60,8 @@ fun FileTreeDrawer(
     onRename: (String, String) -> Unit = { _, _ -> },
     onOpenExamples: () -> Unit = {},
     onOpenCapture: () -> Unit = {},
+    onOpenTools: () -> Unit = {},
+    onOpenAutomation: () -> Unit = {},
 ) {
     var showNewDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
@@ -86,6 +90,12 @@ fun FileTreeDrawer(
             }
             IconButton(onClick = onOpenCapture) {
                 Icon(Icons.Filled.Radar, contentDescription = stringResource(R.string.capture_title))
+            }
+            IconButton(onClick = onOpenTools) {
+                Icon(Icons.Filled.Build, contentDescription = stringResource(R.string.tools_title))
+            }
+            IconButton(onClick = onOpenAutomation) {
+                Icon(Icons.Filled.Schedule, contentDescription = stringResource(R.string.automation_title))
             }
             IconButton(onClick = onRefresh) {
                 Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.files_refresh))

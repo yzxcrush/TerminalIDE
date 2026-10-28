@@ -136,4 +136,10 @@
     <string name="capture_gen_client">クライアント生成</string>
     <string name="capture_gen_done">AI 生成の API クライアント</string>
     <string name="capture_insert_editor">エディタに挿入</string>
+    <string name="tools_title">スクリプトツール</string>
+    <string name="tools_empty">トップレベル関数を書くとツールになります</string>
+    <string name="tools_run">実行</string>
+    <string name="automation_title">自動化</string>
+    <string name="automation_add">新規タスク</string>
+    <string name="automation_empty">自動化タスクはまだありません</string>
 </resources>

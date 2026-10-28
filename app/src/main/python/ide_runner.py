@@ -240,3 +240,81 @@ def repl_reset():
     _REPL_NS.update({"__name__": "__main__", "__builtins__": __builtins__})
     return True
 
+
+
+# ============ 脚本变 App：工具扫描与调用 ============
+
+def list_tools(workspace):
+    """扫描工作区 .py 文件里的顶层函数，返回 JSON 描述（供 UI 生成表单）。"""
+    import ast, os, json
+    tools = []
+    try:
+        names = sorted(os.listdir(workspace))
+    except Exception:
+        return "[]"
+    for name in names:
+        if not name.endswith(".py"):
+            continue
+        path = os.path.join(workspace, name)
+        try:
+            src = open(path, encoding="utf-8", errors="replace").read()
+            tree = ast.parse(src)
+        except Exception:
+            continue
+        module_doc = ast.get_docstring(tree) or ""
+        for node in tree.body:
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            if node.name.startswith("_"):
+                continue
+            params = []
+            for a in node.args.args:
+                ptype = "str"
+                if a.annotation is not None:
+                    try:
+                        ptype = ast.unparse(a.annotation)
+                    except Exception:
+                        pass
+                params.append({"name": a.arg, "type": ptype})
+            tools.append({
+                "file": name,
+                "func": node.name,
+                "params": params,
+                "doc": (ast.get_docstring(node) or module_doc or "").strip().split("\n")[0][:80],
+            })
+    return json.dumps(tools, ensure_ascii=False)
+
+
+def run_tool(workspace, file_name, func_name, kwargs_json):
+    """调用某个工具函数，捕获 stdout 与返回值。"""
+    import json, os, io, contextlib, traceback
+    path = os.path.join(workspace, file_name)
+    try:
+        src = open(path, encoding="utf-8", errors="replace").read()
+        ns = {"__name__": "__tool__"}
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            exec(compile(src, path, "exec"), ns)
+            fn = ns[func_name]
+            result = fn(**json.loads(kwargs_json))
+        out = buf.getvalue()
+        text = result if isinstance(result, str) else repr(result)
+        combined = out + (("\n" if out and text else "") + text if text else "")
+        return combined[:200000] or "(无输出)"
+    except Exception:
+        return "错误：\n" + traceback.format_exc()[-4000:]
+
+
+def run_script(workspace, file_name):
+    """后台运行整个脚本文件，返回 stdout 文本。"""
+    import io, os, contextlib, traceback
+    path = os.path.join(workspace, file_name)
+    try:
+        src = open(path, encoding="utf-8", errors="replace").read()
+        ns = {"__name__": "__main__"}
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            exec(compile(src, path, "exec"), ns)
+        return buf.getvalue()[:200000] or "(无输出)"
+    except Exception:
+        return "错误：\n" + traceback.format_exc()[-4000:]

@@ -23,7 +23,9 @@ import com.terminalide.ui.AiViewModel
 import com.terminalide.ui.EditorViewModel
 import com.terminalide.ui.MainScreen
 import com.terminalide.ui.PackageViewModel
+import com.terminalide.ui.AutomationViewModel
 import com.terminalide.ui.CaptureViewModel
+import com.terminalide.ui.ToolsViewModel
 import com.terminalide.ui.ReplViewModel
 import com.terminalide.ui.TerminalViewModel
 import com.terminalide.ui.theme.TerminalIdeTheme
@@ -74,6 +76,8 @@ class MainActivity : ComponentActivity() {
                     val replVm: ReplViewModel = viewModel()
                     val termVm: TerminalViewModel = viewModel()
                     val captureVm: CaptureViewModel = viewModel()
+                    val toolsVm: ToolsViewModel = viewModel()
+                    val automationVm: AutomationViewModel = viewModel()
 
                     val pending by pendingOpen
                     LaunchedEffect(pending) {
@@ -89,6 +93,8 @@ class MainActivity : ComponentActivity() {
                         replVm = replVm,
                         termVm = termVm,
                         captureVm = captureVm,
+                        toolsVm = toolsVm,
+                        automationVm = automationVm,
                     )
                 }
             }

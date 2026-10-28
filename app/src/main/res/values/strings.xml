@@ -137,4 +137,11 @@
     <string name="capture_gen_client">生成客户端</string>
     <string name="capture_gen_done">AI 生成的 API 客户端</string>
     <string name="capture_insert_editor">插入编辑器</string>
+    <string name="tools_title">脚本工具</string>
+    <string name="tools_empty">工作区里写一个顶层函数，就会自动变成工具</string>
+    <string name="tools_run">运行</string>
+    <string name="automation_title">自动化</string>
+    <string name="automation_add">新建任务</string>
+    <string name="automation_empty">还没有自动化任务
+新建一个，让它定时帮你跑脚本</string>
 </resources>

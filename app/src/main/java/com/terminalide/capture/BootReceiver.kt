@@ -10,6 +10,9 @@ import android.content.Intent
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        // 开机后恢复自动化任务的闹钟
+        runCatching { com.terminalide.automation.AutomationScheduler.rescheduleAll(context) }
+
         Thread {
             runCatching {
                 val out = ProcessBuilder("su", "-c", "settings get global http_proxy")

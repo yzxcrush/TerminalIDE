@@ -136,4 +136,10 @@
     <string name="capture_gen_client">生成客戶端</string>
     <string name="capture_gen_done">AI 生成的 API 客戶端</string>
     <string name="capture_insert_editor">插入編輯器</string>
+    <string name="tools_title">腳本工具</string>
+    <string name="tools_empty">工作區寫一個頂層函式就會自動變成工具</string>
+    <string name="tools_run">執行</string>
+    <string name="automation_title">自動化</string>
+    <string name="automation_add">新增任務</string>
+    <string name="automation_empty">還沒有自動化任務</string>
 </resources>
