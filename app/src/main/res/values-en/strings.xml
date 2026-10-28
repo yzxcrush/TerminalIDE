@@ -143,5 +143,5 @@
     <string name="automation_add">New task</string>
     <string name="automation_empty">No automation tasks yet</string>
     <string name="capture_overlay">Overlay</string>
-    <string name="capture_overlay_need">Needs 'Display over other apps' permission</string>
+    <string name="capture_overlay_need">Needs overlay permission</string>
 </resources>
