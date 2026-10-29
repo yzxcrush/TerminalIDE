@@ -58,6 +58,7 @@ class CaptureService : Service() {
         }
         acquireWakeLock()
         val ok = CaptureEngine.start(this)
+        ensureCaInstalled()
         // 悬浮胶囊：让 App 保持"可见"，避免被系统后台限制
         runCatching {
             if (CaptureBubble.canOverlay(this)) {
@@ -70,6 +71,19 @@ class CaptureService : Service() {
             // 前台服务启动失败也不能崩，退回普通服务
         }
         return START_STICKY
+    }
+
+    /** 后台确保系统 CA 已注入（不阻塞主线程）。 */
+    private fun ensureCaInstalled() {
+        Thread {
+            runCatching {
+                val ca = CaManager(this)
+                ca.ensure()
+                if (!CaInstaller.isInstalled(this, ca)) {
+                    CaInstaller.install(this, ca)
+                }
+            }
+        }.apply { isDaemon = true }.start()
     }
 
     override fun onDestroy() {

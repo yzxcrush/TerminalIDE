@@ -208,7 +208,7 @@ class CaptureViewModel : ViewModel() {
     private fun startHealthCheck() {
         viewModelScope.launch(Dispatchers.IO) {
             while (true) {
-                kotlinx.coroutines.delay(20_000)
+                kotlinx.coroutines.delay(60_000)
                 // 代理正常运行时不做任何事，避免频繁调用 su
                 if (CaptureEngine.isRunning()) continue
                 runCatching {

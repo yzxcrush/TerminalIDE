@@ -17,7 +17,6 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import com.terminalide.MainActivity
 import kotlin.math.abs
 import kotlin.math.min

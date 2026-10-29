@@ -249,7 +249,7 @@ class CaptureProxy(
     private fun tunnel(clientIn: InputStream, clientOut: OutputStream, host: String, port: Int) {
         val server = try {
             Socket().apply {
-                soTimeout = 20_000
+                soTimeout = 60_000
                 connect(InetSocketAddress(host, port), 10_000)
             }
         } catch (_: Throwable) {
