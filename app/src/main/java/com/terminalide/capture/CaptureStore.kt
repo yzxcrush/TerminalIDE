@@ -24,12 +24,14 @@ object CaptureStore {
     val items: StateFlow<List<CaptureEntry>> = _items.asStateFlow()
 
     private var seq = 0L
+    @Volatile private var loaded = false
 
     /** App 启动时调用：加载历史记录。 */
     fun init(ctx: Context) {
         if (file != null) return
         file = File(ctx.applicationContext.filesDir, FILE_NAME)
-        executor.execute { load() }
+        // 同步加载：必须早于任何 persist()，否则会用空列表覆盖历史
+        load()
     }
 
     private fun load() {
@@ -43,6 +45,7 @@ object CaptureStore {
             seq = list.maxOfOrNull { it.id } ?: 0L
             _items.value = list
         }
+        loaded = true
     }
 
     fun nextId(): Long = ++seq
@@ -63,6 +66,7 @@ object CaptureStore {
     }
 
     private fun persist() {
+        if (!loaded) return
         val snapshot = _items.value
         val f = file ?: return
         executor.execute {
