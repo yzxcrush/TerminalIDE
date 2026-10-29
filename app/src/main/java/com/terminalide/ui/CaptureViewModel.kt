@@ -33,7 +33,7 @@ class CaptureViewModel : ViewModel() {
 
     private val app get() = TerminalIdeApp.instance
     private val ca: CaManager get() = CaptureEngine.caManager(app)
-    private val http = OkHttpClient.Builder()
+    private val http = OkHttpClient.Builder().proxy(java.net.Proxy.NO_PROXY)
         .connectTimeout(20, TimeUnit.SECONDS)
         .readTimeout(40, TimeUnit.SECONDS)
         .build()

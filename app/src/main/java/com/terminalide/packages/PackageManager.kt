@@ -24,7 +24,7 @@ class PackageManager(
 ) {
 
     private val pip = PipRunner(sandbox)
-    private val http = OkHttpClient()
+    private val http = OkHttpClient.Builder().proxy(java.net.Proxy.NO_PROXY).build()
 
     // ---- 镜像源切换 ----
 

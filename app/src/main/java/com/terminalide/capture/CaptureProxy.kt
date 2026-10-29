@@ -59,7 +59,7 @@ class CaptureProxy(
 
     private fun handle(client: Socket) {
         client.use { socket ->
-            socket.soTimeout = 20_000
+            socket.soTimeout = 60_000
             val input = BufferedInputStream(socket.getInputStream())
             val output = BufferedOutputStream(socket.getOutputStream())
 
@@ -150,7 +150,7 @@ class CaptureProxy(
         // 3) 连接真实服务器
         val server = try {
             val raw = Socket()
-            raw.soTimeout = 20_000
+            raw.soTimeout = 60_000
             raw.connect(InetSocketAddress(host, port), 10_000)
             if (scheme == "https") {
                 // 注意：SSLSocketFactory.getDefault() 的返回类型是 SocketFactory，必须强转

@@ -123,7 +123,7 @@ class AiService(
     ): String = withContext(Dispatchers.IO) {
         val fileName = url.substringAfterLast('/').substringBefore('?').ifBlank { "model.bin" }
         val dest = File(modelsDir, fileName)
-        val client = OkHttpClient.Builder()
+        val client = OkHttpClient.Builder().proxy(java.net.Proxy.NO_PROXY)
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(0, java.util.concurrent.TimeUnit.SECONDS)
             .build()
