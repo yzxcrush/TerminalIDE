@@ -55,7 +55,7 @@ class TerminalIdeApp : Application() {
         try {
             sandbox = Sandbox(this)
             settings = SettingsStore(this)
-        com.terminalide.capture.CaptureStore.init(this)
+            com.terminalide.capture.CaptureStore.init(this)
             toolchain = NdkToolchain(sandbox)
             packageManager = PackageManager(this, sandbox, settings)
             backends = BackendRegistry(sandbox, toolchain)
