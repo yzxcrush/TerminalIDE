@@ -34,7 +34,8 @@ for z in zygote zygote64; do
   done
 done
 
-if ls /apex/com.android.conscrypt/cacerts/$H.0 >/dev/null 2>&1; then
+# 在 init 命名空间验证（root shell 自己的命名空间看不到挂载结果）
+if nsenter -t 1 -m -- ls /apex/com.android.conscrypt/cacerts/$H.0 >/dev/null 2>&1; then
   echo CA_OK
 else
   echo CA_MISSING

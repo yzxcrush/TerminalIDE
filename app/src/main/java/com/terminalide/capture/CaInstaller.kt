@@ -29,17 +29,24 @@ object CaInstaller {
             val out = p.inputStream.bufferedReader().readText()
             val err = p.errorStream.bufferedReader().readText()
             p.waitFor()
-            (out + err).trim()
+            val combined = (out + err).trim()
+            if (combined.contains("CA_OK")) markInstalled(ctx, hash)
+            combined
         }.getOrElse { "EXEC_FAIL: ${it.message}" }
     }
 
-    /** 是否已安装（检查证书文件是否存在于 APEX）。 */
+    /** 是否已安装（用标记文件：App 进程看不到 init 命名空间的挂载结果）。 */
     fun isInstalled(ctx: Context, ca: CaManager): Boolean {
         val der = ca.caDer() ?: return false
         val hash = subjectHash(der)
+        val marker = File(ctx.filesDir, "ca_installed.marker")
         return runCatching {
-            File("/apex/com.android.conscrypt/cacerts/$hash.0").exists()
+            marker.exists() && marker.readText().trim() == hash
         }.getOrDefault(false)
+    }
+
+    private fun markInstalled(ctx: Context, hash: String) {
+        runCatching { File(ctx.filesDir, "ca_installed.marker").writeText(hash) }
     }
 
     private fun buildPem(der: ByteArray): String = buildString {
